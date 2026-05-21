@@ -1,0 +1,925 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5C5C0C4B-06E4-4A8E-BA02-3B3305A475E2}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>XRDataProcess</RootNamespace>
+    <AssemblyName>内业数据处理软件V2.2.1</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\Output\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\Output\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>logo_64_xroe.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\Output\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodeAnalysisLogFile>..\Output\内业数据处理软件V2.1.0.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;D:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisRuleDirectories>;D:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>..\Output\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodeAnalysisLogFile>..\Output\内业数据处理软件V2.1.0.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;D:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisRuleDirectories>;D:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>..\Output\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>..\Output\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AutoMapper, Version=10.0.0.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoMapper.10.1.1\lib\net461\AutoMapper.dll</HintPath>
+    </Reference>
+    <Reference Include="BouncyCastle.Cryptography, Version=2.0.0.0, Culture=neutral, PublicKeyToken=072edcf4a5328938, processorArchitecture=MSIL">
+      <HintPath>..\packages\BouncyCastle.Cryptography.2.2.1\lib\net461\BouncyCastle.Cryptography.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.BonusSkins.v15.2" />
+    <Reference Include="DevExpress.Charts.v15.2.Core, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.Data.Desktop.v22.1, Version=22.1.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.Data.v15.2, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.Images.v15.2, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.Map.v15.2.Core, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.Printing.v15.2.Core, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.Sparkline.v15.2.Core" />
+    <Reference Include="DevExpress.Utils.v15.2, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraBars.v15.2, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraCharts.v15.2, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.XtraCharts.v15.2.UI, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraCharts.v15.2.Wizard, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.XtraEditors.v15.2, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraLayout.v15.2, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.XtraMap.v15.2, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraNavBar.v15.2, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraPrinting.v15.2, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.XtraTreeList.v15.2, Version=15.2.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Enums.NET, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7ea1c1650d506225, processorArchitecture=MSIL">
+      <HintPath>..\packages\Enums.NET.4.0.1\lib\net45\Enums.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="hnPanoShowAPI, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Output\hnPanoShowAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=1.3.3.11, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpZipLib.1.3.3\lib\net45\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="MathNet.Numerics, Version=4.15.0.0, Culture=neutral, PublicKeyToken=cd8b63ad3d691a37, processorArchitecture=MSIL">
+      <HintPath>..\packages\MathNet.Numerics.Signed.4.15.0\lib\net461\MathNet.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.IO.RecyclableMemoryStream, Version=2.3.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IO.RecyclableMemoryStream.2.3.2\lib\net462\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Office.Interop.Excel.15.0.4795.1001\lib\net20\Microsoft.Office.Interop.Excel.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Word, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Office.Interop.Word.15.0.4797.1004\lib\net20\Microsoft.Office.Interop.Word.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAPICodePack.1.1.2\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.ExtendedLinguisticServices, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAPICodePack.1.1.2\lib\Microsoft.WindowsAPICodePack.ExtendedLinguisticServices.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.Sensors, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAPICodePack.1.1.2\lib\Microsoft.WindowsAPICodePack.Sensors.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.Shell, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAPICodePack.1.1.2\lib\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.ShellExtensions, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAPICodePack.1.1.2\lib\Microsoft.WindowsAPICodePack.ShellExtensions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="netstandard" />
+    <Reference Include="NPOI.Core, Version=2.6.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.6.1\lib\netstandard2.0\NPOI.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OOXML, Version=2.6.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.6.1\lib\netstandard2.0\NPOI.OOXML.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXml4Net, Version=2.6.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.6.1\lib\netstandard2.0\NPOI.OpenXml4Net.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXmlFormats, Version=2.6.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.6.1\lib\netstandard2.0\NPOI.OpenXmlFormats.dll</HintPath>
+    </Reference>
+    <Reference Include="Office, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\MicrosoftOfficeCore.15.0.0\lib\net35\Office.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.1.1.2349.61993\lib\NET40\OpenTK.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="OpenTK.GLControl, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.GLControl.1.1.2349.61993\lib\NET40\OpenTK.GLControl.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="ProjectLog, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\ProjectLog.dll</HintPath>
+    </Reference>
+    <Reference Include="SixLabors.Fonts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d998eea7b14cab13, processorArchitecture=MSIL">
+      <HintPath>..\packages\SixLabors.Fonts.1.0.0\lib\netstandard2.0\SixLabors.Fonts.dll</HintPath>
+    </Reference>
+    <Reference Include="SixLabors.ImageSharp, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d998eea7b14cab13, processorArchitecture=MSIL">
+      <HintPath>..\packages\SixLabors.ImageSharp.2.1.4\lib\net472\SixLabors.ImageSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Spire.License, Version=1.4.0.40, Culture=neutral, PublicKeyToken=b1144360237c8b3f, processorArchitecture=MSIL">
+      <HintPath>..\packages\FreeSpire.XLS.12.2.0\lib\net40\Spire.License.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Spire.Pdf, Version=8.2.2.0, Culture=neutral, PublicKeyToken=663f351905198cb3, processorArchitecture=MSIL">
+      <HintPath>..\packages\FreeSpire.XLS.12.2.0\lib\net40\Spire.Pdf.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Spire.XLS, Version=12.2.0.0, Culture=neutral, PublicKeyToken=663f351905198cb3, processorArchitecture=MSIL">
+      <HintPath>..\packages\FreeSpire.XLS.12.2.0\lib\net40\Spire.XLS.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SqlSugar, Version=5.1.3.42, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SqlSugar.5.1.3.42\lib\SqlSugar.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.ConfigurationManager, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Configuration.ConfigurationManager.6.0.0\lib\net461\System.Configuration.ConfigurationManager.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Data.OracleClient" />
+    <Reference Include="System.Data.SQLite, Version=1.0.117.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.117.0\lib\net46\System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite.EF6, Version=1.0.117.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.SQLite.EF6.1.0.117.0\lib\net46\System.Data.SQLite.EF6.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite.Linq, Version=1.0.117.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.SQLite.Linq.1.0.117.0\lib\net46\System.Data.SQLite.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Security.AccessControl, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.AccessControl.6.0.0\lib\net461\System.Security.AccessControl.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Xml, Version=6.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Xml.6.0.1\lib\net461\System.Security.Cryptography.Xml.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Permissions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Permissions.6.0.0\lib\net461\System.Security.Permissions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Principal.Windows, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Principal.Windows.5.0.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Text.Encoding.CodePages, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encoding.CodePages.6.0.0\lib\net461\System.Text.Encoding.CodePages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ChoseExcel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ChoseExcel.Designer.cs">
+      <DependentUpon>ChoseExcel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ConventGetRoadNumberForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConventGetRoadNumberForm.Designer.cs">
+      <DependentUpon>ConventGetRoadNumberForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GJTitles.cs" />
+    <Compile Include="HefeiPropertyDataMange.cs" />
+    <Compile Include="MulitExcelFrom.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MulitExcelFrom.Designer.cs">
+      <DependentUpon>MulitExcelFrom.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MyExcelHNDegreeSmall.cs" />
+    <Compile Include="MyWordHeFei.cs" />
+    <Compile Include="MyWordSzechwanDQ.cs" />
+    <Compile Include="ProcessOperator.cs" />
+    <Compile Include="ProgressBarForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProgressBarForm.Designer.cs">
+      <DependentUpon>ProgressBarForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="VillageHandleCoord.cs" />
+    <Compile Include="hnVillageHandleCoord.cs" />
+    <Compile Include="VillageIndexException.cs" />
+    <Compile Include="WinGDProcessBar.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinGDProcessBar.Designer.cs">
+      <DependentUpon>WinGDProcessBar.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MyTxtExportDegree.cs" />
+    <Compile Include="dxf导出车道报表选择.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dxf导出车道报表选择.designer.cs">
+      <DependentUpon>dxf导出车道报表选择.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FittingFunct.cs" />
+    <Compile Include="MyExcelCitySH2013.cs" />
+    <Compile Include="MyExcelCQDegree.cs" />
+    <Compile Include="MyExcelGXDegree.cs" />
+    <Compile Include="MyExcelHNDegree.cs" />
+    <Compile Include="MyExcelLNDegree.cs" />
+    <Compile Include="MyExcelMerge.cs" />
+    <Compile Include="MyGeoAlig.cs" />
+    <Compile Include="MyWordCitySH2013.cs" />
+    <Compile Include="MyWordGX.cs" />
+    <Compile Include="OutputXR.cs" />
+    <Compile Include="RoadConfig.cs" />
+    <Compile Include="SHPGDataStruct.cs" />
+    <Compile Include="WinRoad.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinRoad.Designer.cs">
+      <DependentUpon>WinRoad.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinRoadImg.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinRoadImg.Designer.cs">
+      <DependentUpon>WinRoadImg.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinRoadImgScroll.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinRoadImgScroll.Designer.cs">
+      <DependentUpon>WinRoadImgScroll.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinRoadNew.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinRoadNew.Designer.cs">
+      <DependentUpon>WinRoadNew.cs</DependentUpon>
+    </Compile>
+    <Compile Include="XRSetting.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MyExcelVillageDegree.cs" />
+    <Compile Include="MyExcelVillageDegreeSmall.cs" />
+    <Compile Include="四川公路院出表选择.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="四川公路院出表选择.Designer.cs">
+      <DependentUpon>四川公路院出表选择.cs</DependentUpon>
+    </Compile>
+    <Compile Include="导出景观报表区间.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="导出景观报表区间.designer.cs">
+      <DependentUpon>导出景观报表区间.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GetDiseaseFiles.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GetDiseaseFiles.Designer.cs">
+      <DependentUpon>GetDiseaseFiles.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GlobalExcel.cs" />
+    <Compile Include="GlobalWord.cs" />
+    <Compile Include="Ladybug.cs" />
+    <Compile Include="LadybugFunctors.cs" />
+    <Compile Include="LadybugGeom.cs" />
+    <Compile Include="LadybugImageAdjustment.cs" />
+    <Compile Include="LadybugRenderer.cs" />
+    <Compile Include="LadybugStream.cs" />
+    <Compile Include="MyExcelBJDegree.cs" />
+    <Compile Include="MyExcelDegree2001.cs" />
+    <Compile Include="MyExcelDegree2018.cs" />
+    <Compile Include="MyExcelDegreesSmall2018.cs" />
+    <Compile Include="MyImgMile.cs" />
+    <Compile Include="Disease.cs" />
+    <Compile Include="MyPanoStitch.cs" />
+    <Compile Include="MyRut_new.cs" />
+    <Compile Include="PartRectInfo.cs" />
+    <Compile Include="批量提示窗口.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="批量提示窗口.Designer.cs">
+      <DependentUpon>批量提示窗口.cs</DependentUpon>
+    </Compile>
+    <Compile Include="报告设置.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="报告设置.Designer.cs">
+      <DependentUpon>报告设置.cs</DependentUpon>
+    </Compile>
+    <Compile Include="畸变矫正窗体.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="畸变矫正窗体.Designer.cs">
+      <DependentUpon>畸变矫正窗体.cs</DependentUpon>
+    </Compile>
+    <Compile Include="病害类型转换.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="病害类型转换.Designer.cs">
+      <DependentUpon>病害类型转换.cs</DependentUpon>
+    </Compile>
+    <Compile Include="统计单元长度.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="统计单元长度.Designer.cs">
+      <DependentUpon>统计单元长度.cs</DependentUpon>
+    </Compile>
+    <Compile Include="设置报表桩号.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="设置报表桩号.Designer.cs">
+      <DependentUpon>设置报表桩号.cs</DependentUpon>
+    </Compile>
+    <Compile Include="路基损坏类型.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="路基损坏类型.Designer.cs">
+      <DependentUpon>路基损坏类型.cs</DependentUpon>
+    </Compile>
+    <Compile Include="车道报表选择.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="车道报表选择.Designer.cs">
+      <DependentUpon>车道报表选择.cs</DependentUpon>
+    </Compile>
+    <Compile Include="软件设置.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="软件设置.Designer.cs">
+      <DependentUpon>软件设置.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RoadDiseaseType.cs" />
+    <Compile Include="RoadDiseaseTypes.cs" />
+    <Compile Include="导出路面报表区间.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="导出路面报表区间.Designer.cs">
+      <DependentUpon>导出路面报表区间.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Global.cs" />
+    <Compile Include="IniFileOpr.cs" />
+    <Compile Include="MilePart.cs" />
+    <Compile Include="MyExcelCity.cs" />
+    <Compile Include="MyExcelDegree2007.cs" />
+    <Compile Include="MyIRIMTD_new.cs" />
+    <Compile Include="MyIRMValMile.cs" />
+    <Compile Include="MyWord.cs" />
+    <Compile Include="MyWordCity.cs" />
+    <Compile Include="OperateIniFile.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="ProjectInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RoadPavement2001.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RoadPavement2001.Designer.cs">
+      <DependentUpon>RoadPavement2001.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RoadPavementPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RoadPavementPanel.designer.cs">
+      <DependentUpon>RoadPavementPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="路段配置.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="路段配置.designer.cs">
+      <DependentUpon>路段配置.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SelectIRM.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SelectIRM.Designer.cs">
+      <DependentUpon>SelectIRM.cs</DependentUpon>
+    </Compile>
+    <Compile Include="设置病害勾选类型.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="设置病害勾选类型.Designer.cs">
+      <DependentUpon>设置病害勾选类型.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SelectShow2001.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SelectShow2001.Designer.cs">
+      <DependentUpon>SelectShow2001.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SingleProject.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SingleProject.Designer.cs">
+      <DependentUpon>SingleProject.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SmalRectDisease.cs" />
+    <Compile Include="SnbkSetForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SnbkSetForm.Designer.cs">
+      <DependentUpon>SnbkSetForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="沿线设施损坏类型.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="沿线设施损坏类型.designer.cs">
+      <DependentUpon>沿线设施损坏类型.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TrackBall.cs" />
+    <Compile Include="WinImgFull.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinImgFull.Designer.cs">
+      <DependentUpon>WinImgFull.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinIRM.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinIRM.Designer.cs">
+      <DependentUpon>WinIRM.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinPanoImg.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinPanoImg.Designer.cs">
+      <DependentUpon>WinPanoImg.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinPanoProcessBar.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinPanoProcessBar.Designer.cs">
+      <DependentUpon>WinPanoProcessBar.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinProcessBar.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinProcessBar.Designer.cs">
+      <DependentUpon>WinProcessBar.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinProj.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinProj.designer.cs">
+      <DependentUpon>WinProj.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinRoadDisList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinRoadDisList.Designer.cs">
+      <DependentUpon>WinRoadDisList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="选择导出报告.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="选择导出报告.Designer.cs">
+      <DependentUpon>选择导出报告.cs</DependentUpon>
+    </Compile>
+    <Compile Include="采集打标列表.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="采集打标列表.Designer.cs">
+      <DependentUpon>采集打标列表.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinMap.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinMap.designer.cs">
+      <DependentUpon>WinMap.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinStreetDisList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinStreetDisList.Designer.cs">
+      <DependentUpon>WinStreetDisList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinStreetImg.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinStreetImg.Designer.cs">
+      <DependentUpon>WinStreetImg.cs</DependentUpon>
+    </Compile>
+    <Compile Include="输出报告类型.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="输出报告类型.Designer.cs">
+      <DependentUpon>输出报告类型.cs</DependentUpon>
+    </Compile>
+    <Compile Include="YGView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="YGView.Designer.cs">
+      <DependentUpon>YGView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="设置单元编号.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="设置单元编号.Designer.cs">
+      <DependentUpon>设置单元编号.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="ChoseExcel.resx">
+      <DependentUpon>ChoseExcel.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ConventGetRoadNumberForm.resx">
+      <DependentUpon>ConventGetRoadNumberForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dxf导出车道报表选择.resx">
+      <DependentUpon>dxf导出车道报表选择.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <None Include="app.config" />
+    <EmbeddedResource Include="MulitExcelFrom.resx">
+      <DependentUpon>MulitExcelFrom.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProgressBarForm.resx">
+      <DependentUpon>ProgressBarForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\licenses.licx" />
+    <EmbeddedResource Include="WinGDProcessBar.resx">
+      <DependentUpon>WinGDProcessBar.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinRoad.resx">
+      <DependentUpon>WinRoad.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinRoadImg.resx">
+      <DependentUpon>WinRoadImg.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinRoadNew.resx">
+      <DependentUpon>WinRoadNew.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="四川公路院出表选择.resx">
+      <DependentUpon>四川公路院出表选择.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="导出景观报表区间.resx">
+      <DependentUpon>导出景观报表区间.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="导出路面报表区间.resx">
+      <DependentUpon>导出路面报表区间.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GetDiseaseFiles.resx">
+      <DependentUpon>GetDiseaseFiles.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <EmbeddedResource Include="批量提示窗口.resx">
+      <DependentUpon>批量提示窗口.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="报告设置.resx">
+      <DependentUpon>报告设置.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="畸变矫正窗体.resx">
+      <DependentUpon>畸变矫正窗体.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="病害类型转换.resx">
+      <DependentUpon>病害类型转换.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="统计单元长度.resx">
+      <DependentUpon>统计单元长度.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="设置报表桩号.resx">
+      <DependentUpon>设置报表桩号.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="路基损坏类型.resx">
+      <DependentUpon>路基损坏类型.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="车道报表选择.resx">
+      <DependentUpon>车道报表选择.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="软件设置.resx">
+      <DependentUpon>软件设置.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RoadPavement2001.resx">
+      <DependentUpon>RoadPavement2001.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RoadPavementPanel.resx">
+      <DependentUpon>RoadPavementPanel.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="路段配置.resx">
+      <DependentUpon>路段配置.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SelectIRM.resx">
+      <DependentUpon>SelectIRM.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="设置病害勾选类型.resx">
+      <DependentUpon>设置病害勾选类型.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SelectShow2001.resx">
+      <DependentUpon>SelectShow2001.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SingleProject.resx">
+      <DependentUpon>SingleProject.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SnbkSetForm.resx">
+      <DependentUpon>SnbkSetForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="沿线设施损坏类型.resx">
+      <DependentUpon>沿线设施损坏类型.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinImgFull.resx">
+      <DependentUpon>WinImgFull.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinIRM.resx">
+      <DependentUpon>WinIRM.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinPanoImg.resx">
+      <DependentUpon>WinPanoImg.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinPanoProcessBar.resx">
+      <DependentUpon>WinPanoProcessBar.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinProcessBar.resx">
+      <DependentUpon>WinProcessBar.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinProj.resx">
+      <DependentUpon>WinProj.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinRoadDisList.resx">
+      <DependentUpon>WinRoadDisList.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="选择导出报告.resx">
+      <DependentUpon>选择导出报告.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="采集打标列表.resx">
+      <DependentUpon>采集打标列表.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinMap.resx">
+      <DependentUpon>WinMap.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinStreetDisList.resx">
+      <DependentUpon>WinStreetDisList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinStreetImg.resx">
+      <DependentUpon>WinStreetImg.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="输出报告类型.resx">
+      <DependentUpon>输出报告类型.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="YGView.resx">
+      <DependentUpon>YGView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="设置单元编号.resx">
+      <DependentUpon>设置单元编号.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="app.manifest" />
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="CfgFiles\log4net.cfg.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="license.txt" />
+    <Content Include="logo_64.ico" />
+    <Content Include="logo_64_xroe.ico" />
+    <Content Include="ReadMe.txt" />
+    <Content Include="Windows Logo.png" />
+    <None Include="修改日志\WorkLog.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 Client Profile %28x86 和 x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="MSScriptControl">
+      <Guid>{0E59F1D2-1FBE-11D0-8FF2-00A0D10038BC}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="VBIDE">
+      <Guid>{0002E157-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>5</VersionMajor>
+      <VersionMinor>3</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="NewFolder1\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Farmework\Framework.csproj">
+      <Project>{86f3759d-53da-43c4-b903-0e395e38c6ad}</Project>
+      <Name>Framework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HNDtos\HNDtos.csproj">
+      <Project>{4D25FDA4-BE99-4AF7-AAAC-760403E755EF}</Project>
+      <Name>HNDtos</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>这台计算机上缺少此项目引用的 NuGet 程序包。使用“NuGet 程序包还原”可下载这些程序包。有关更多信息，请参见 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的文件是 {0}。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
+    <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
+    <Error Condition="!Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.117.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.117.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets'))" />
+  </Target>
+  <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
+  <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.117.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.117.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

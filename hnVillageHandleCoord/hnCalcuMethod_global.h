@@ -1,0 +1,10 @@
+#ifndef HNCALCU_IRI_METHOD_GLOBAL_H
+#define HNCALCU_IRI_METHOD_GLOBAL_H
+
+#ifdef HNCALCUIRIMETHOD_EXPORTS
+#define HNCALCUIRIMETHOD_API __declspec(dllexport)
+#else
+#define HNCALCUIRIMETHOD_API __declspec(dllimport)
+#endif
+
+#endif // HNCALCU_IRI_METHOD_GLOBAL_H
