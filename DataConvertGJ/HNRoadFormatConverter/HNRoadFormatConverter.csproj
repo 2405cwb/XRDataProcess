@@ -285,6 +285,8 @@
     <Compile Include="Entitys\Excel\IRI.cs" />
     <Compile Include="Entitys\PicAndMile.cs" />
     <Compile Include="EnumerableExtensions.cs" />
+    <Compile Include="Exporters\National2026ExportService.cs" />
+    <Compile Include="Exporters\PictureExportService.cs" />
     <Compile Include="ExcelManager\MyExcelBase.cs" />
     <Compile Include="Form2.cs">
       <SubType>Form</SubType>

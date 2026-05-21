@@ -10,6 +10,7 @@ using Farmework.Other;
 using Farmework.Other.enumTools;
 using HNRoadFormatConverter.Commons;
 using HNRoadFormatConverter.Entitys;
+using HNRoadFormatConverter.Exporters;
 using HNRoadFormatConverter.MyConfig;
 using HNRoadFormatConverter.MyEntitys;
 using HNRoadFormatConverter.toolForms;
@@ -331,6 +332,7 @@ namespace HNRoadFormatConverter
             // 将索引目录按5000大小 分区后，存入缓冲队列
             List<ValueTuple<DirectoryInfo, List<List<PicAndMile>>>> streePic_CacheQueue = new();
             List<ValueTuple<DirectoryInfo, List<List<PicAndMile>>>> roadImage_CacheQueue = new();
+            List<National2026PictureExportTask> national2026PictureTasks = new();
             
              
                 
@@ -345,13 +347,43 @@ namespace HNRoadFormatConverter
                 }
                 else if (currentStandard == CityModelItem.农养国省道路况检测数据提交格式_2026年)
                 {
-                    string dirHnTempDirection = pro._Direction == "A" ? "上行" : "下行";
-                    outPath = targetBasePath + $"\\{pro._City.Replace("市","")}+省检+{pro.ConvertProName.Substring(0,pro.ConvertProName.Length-1)}-{dirHnTempDirection}-{pro.RoadNum}车道-[年月日时分秒]"+
-                        "\\EXPORTDATA";
+                    outPath = National2026ExportService.BuildExportDataPath(pro, targetBasePath);
                 }
                 else
                 {
                     outPath = targetBasePath + "\\结果数据";
+                }
+
+                if (currentStandard == CityModelItem.农养国省道路况检测数据提交格式_2026年)
+                {
+                    _Suf = ".jpg";
+                    Directory.CreateDirectory(outPath);
+                    if (!National2026ExportService.ExportMetricFiles(pro, outPath, handelCsvFiles, out string errorMessage))
+                    {
+                        MessageBox.Show(errorMessage);
+                        continue;
+                    }
+
+                    if (chebtn.Checked)
+                    {
+                        if (!string.IsNullOrWhiteSpace(pro.RoadPicPath))
+                        {
+                            National2026PictureExportTask roadTask =
+                                National2026ExportService.CreatePictureTask(pro, outPath, true);
+                            ImgCnt += roadTask.Count;
+                            national2026PictureTasks.Add(roadTask);
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(pro.StreetPicPath))
+                        {
+                            National2026PictureExportTask frontTask =
+                                National2026ExportService.CreatePictureTask(pro, outPath, false);
+                            ImgCnt += frontTask.Count;
+                            national2026PictureTasks.Add(frontTask);
+                        }
+                    }
+
+                    continue;
                 }
 
                 string outPathResult = outPath + "\\" + pro.ConvertProName;
@@ -496,19 +528,29 @@ namespace HNRoadFormatConverter
             this.progressBar1.Value = 0;
             this.progressBar1.Minimum = 0;
             label2.Text = "0%";
-            this.progressBar1.Maximum = ImgCnt;
+            this.progressBar1.Maximum = Math.Max(ImgCnt, 1);
             this.Process = new Progress<int>(
 
 
                 Value =>
 
                 {
+                    if (ImgCnt <= 0)
+                    {
+                        return;
+                    }
+
                     progressBar1.Value += Value;
                     int value = progressBar1.Value * 100 / ImgCnt;
                     label2.Text = value.ToString() + "%";
                 }
 
                 );
+
+            foreach (National2026PictureExportTask task in national2026PictureTasks)
+            {
+                await Task.Run(() => National2026ExportService.ExportPictures(task, this.Process, _Suf));
+            }
 
             //输出图片
             for (int proIndex = 0; proIndex < _Projects.Count; proIndex++)
@@ -1463,92 +1505,14 @@ namespace HNRoadFormatConverter
         /// <param name="spList"></param>
         private async Task MovePicutre(DirectoryInfo image, List<List<PicAndMile>> spList, CityModelItem stanard)
         {
-            for (int z = 0; z < spList.Count; z++)
-            {
-
-                List<PicAndMile> source = spList[z];
-                int t = z + 1;
-                string dirName = t.ToString("00");
-                switch (stanard)
-                {
-                    case CityModelItem.交通部2024规范:
-                        break;
-                    case CityModelItem.河南省单位一农村路定制:
-                        break;
-                    case CityModelItem.湖南省单位一定制:
-                        t = z;
-                        dirName = t.ToString("0");
-                        break;
-                    case CityModelItem.重庆市单位一定制:
-                        break;
-                    case CityModelItem.甘肃省单位一定制:
-                        break;
-                    case CityModelItem.河北省单位一定制:
-                        break;
-                    case CityModelItem.江苏省单位一定制:
-                        break;
-                    default:
-                        break;
-                }
-
-                await Task.Run(() =>
-
-                    DoWork(ref source, image, dirName, this.Process)
-
-                );
-            }
-        }
-
-
-        private void DoWork(ref List<PicAndMile> source, DirectoryInfo image, string dirName, IProgress<int> progress)
-        {
-            for (int i = 0; i < source.Count; i++)
-            {
-                //创建存储图片文件夹 
-                string basePicPath = image.FullName + "\\" + dirName;
-                Directory.CreateDirectory(basePicPath);
-
-                string picSoucePath = source[i].PicPath;
-                string targetPath = basePicPath + "\\" + source[i].ResultPicName + _Suf;
-                if (File.Exists(picSoucePath))
-                {
-                    File.Copy(picSoucePath, targetPath, true);
-                    progress.Report(1);
-                }
-            }
-
+            await Task.Run(() =>
+                PictureExportService.ExportStandardBatches(image, spList, stanard, _Suf, this.Process)
+            );
         }
 
         private async Task MovePicutreHuNan(DirectoryInfo image, List<List<PicAndMile>> spList, int indexPro)
         {
-            for (int z = 0; z < spList.Count; z++)
-            {
-
-                List<PicAndMile> source = spList[z];
-                // int t = z + 1;
-                int t = z;
-                await Task.Run(() =>
-                {
-
-                    for (int i = 0; i < source.Count; i++)
-                    {
-
-                        string dirName = t.ToString();
-                        //创建存储图片文件夹 
-                        string basePicPath = image.FullName + "\\0\\" + dirName;
-                        Directory.CreateDirectory(basePicPath);
-                        string picSoucePath = source[i].PicPath;
-                        string targetPath = basePicPath + "\\" + source[i].ResultPicName + ".jpg";
-                        if (File.Exists(picSoucePath))
-                        {
-                            File.Copy(picSoucePath, targetPath, true);
-                        }
-
-
-                    }
-                }
-                );
-            }
+            await Task.Run(() => PictureExportService.ExportHunanBatches(image, spList));
         }
         public static int ProcessValue
         {
@@ -1564,37 +1528,11 @@ namespace HNRoadFormatConverter
         /// <returns></returns>
         private static List<List<PicAndMile>> SplitPicAndMileList_5000(List<PicAndMile> _picAndMiles)
         {
-            int num = _picAndMiles.Count / 5000 + 1;
-            List<List<PicAndMile>> spList = new List<List<PicAndMile>>();
-            for (int i = 0; i < num; i++)
-            {
-
-                List<PicAndMile> picAndMiles = new List<PicAndMile>();
-                for (int t = i * 5000; t < _picAndMiles.Count && t < (i + 1) * 5000; t++)
-                {
-                    picAndMiles.Add(_picAndMiles[t]);
-                }
-                spList.Add(picAndMiles);
-            }
-
-            return spList;
+            return PictureExportService.SplitByBatchSize(_picAndMiles);
         }
         private static List<List<PicAndMile>> SplitPicAndMileList_5000HuNan(List<PicAndMile> _picAndMiles)
         {
-            int num = _picAndMiles.Count / 5000 + 1;
-            List<List<PicAndMile>> spList = new List<List<PicAndMile>>();
-            for (int i = 0; i < num; i++)
-            {
-
-                List<PicAndMile> picAndMiles = new List<PicAndMile>();
-                for (int t = i * 5000; t < _picAndMiles.Count && t < (i + 1) * 5000; t++)
-                {
-                    picAndMiles.Add(_picAndMiles[t]);
-                }
-                spList.Add(picAndMiles);
-            }
-
-            return spList;
+            return PictureExportService.SplitByBatchSize(_picAndMiles);
         }
         /// <summary>
         /// 写 fileindex.txt

@@ -470,7 +470,10 @@ namespace HNRoadFormatConverter.MyEntitys
 
                         }
                     case "工程开始时刻": _DataTime = s[1]; DateMin = s[1]; break;
-                    case "车道": _RoadNum = s[1]; break;
+                    case "车道":
+                        _RoadNum = s[1];
+                        RoadNum = s[1];
+                        break;
 
                     case "采集日期": _DataDate = s[1]; DateDay = s[1]; break;
 
@@ -732,11 +735,17 @@ namespace HNRoadFormatConverter.MyEntitys
                     System.Environment.Exit(0);
                 }
                 string[] strs = File.ReadAllLines(indexTxt);
-                foreach (var str in strs)
+                for (int i = 0; i < strs.Length; i++)
                 {
+                    var str = strs[i];
                     PicAndMile _picAndMile = new PicAndMile();
                     var sp = str.Split(' ');
-                    _picAndMile.Mile = int.Parse(sp[0]) + 2;
+                    int afterCalibrationMile = int.Parse(sp[0]);
+                    _picAndMile.BeforeCalibrationMile = _StartMile + _DirectionInt * (i + 1) * _RoadImgDis;
+                    _picAndMile.AfterCalibrationMile = afterCalibrationMile;
+                    _picAndMile.Mile = stanard == CityModelItem.农养国省道路况检测数据提交格式_2026年
+                        ? afterCalibrationMile
+                        : afterCalibrationMile + 2;
                     _picAndMile.PicPath = pciBasePath + sp[1];
                     _picAndMile.sourceTxt = str;
 
@@ -755,17 +764,21 @@ namespace HNRoadFormatConverter.MyEntitys
                     System.Environment.Exit(0);
                 }
                 string[] strs = File.ReadAllLines(indexTxt);
-                foreach (var str in strs)
+                for (int i = 0; i < strs.Length; i++)
                 {
+                    var str = strs[i];
                     PicAndMile _picAndMile = new PicAndMile();
                     var sp = str.Split(' ');
-                    _picAndMile.Mile = int.Parse(sp[0]);
+                    int afterCalibrationMile = int.Parse(sp[0]);
+                    _picAndMile.BeforeCalibrationMile = _StartMile + _DirectionInt * (i + 1) * _StreetImgDis;
+                    _picAndMile.AfterCalibrationMile = afterCalibrationMile;
+                    _picAndMile.Mile = afterCalibrationMile;
                     _picAndMile.PicPath = pciBasePath + sp[1];
                     _picAndMile.sourceTxt = str;
                     _picAndMile.ResultPicName = GetResultPicName(_picAndMile);
                     picAndMiles.Add(_picAndMile);
                 }
-                if (picAndMiles.Count > 1)
+                if (stanard != CityModelItem.农养国省道路况检测数据提交格式_2026年 && picAndMiles.Count > 1)
                 {
                     int streetDistance = picAndMiles[1].Mile - picAndMiles[0].Mile;
 
