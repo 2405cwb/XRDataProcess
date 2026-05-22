@@ -710,6 +710,47 @@ namespace HNRoadFormatConverter.MyEntitys
         public List<PicAndMile> GetPicAndMiles(bool road, CityModelItem stanard)
         {
             List<PicAndMile> picAndMiles = new List<PicAndMile>();
+            int GetImageIndexMile(int imageIndex, int imageInterval, out bool shouldStop)
+            {
+                // 图像 fileindex 的桩号按工程起终点边界和采集间隔生成，不使用 2Mile.txt 的校桩值。
+                // 上行从 0 按间隔递增到工程总距离；下行从工程总距离按间隔递减到 0。
+                // 如果最后一步越过边界，则本张写边界值，后续图片不再导出，避免重复 0 或超出终点。
+                int totalDistance = Math.Abs(_StartMile - _EndMile);
+                if (totalDistance == 0 && _EndDmi > 0)
+                {
+                    totalDistance = _EndDmi;
+                }
+
+                shouldStop = false;
+                if (_DirectionInt < 0)
+                {
+                    int mile = totalDistance - (imageIndex + 1) * imageInterval;
+                    if (mile <= 0)
+                    {
+                        shouldStop = true;
+                        return 0;
+                    }
+
+                    return mile;
+                }
+
+                int upMile = (imageIndex + 1) * imageInterval;
+                if (upMile >= totalDistance)
+                {
+                    shouldStop = true;
+                    return totalDistance;
+                }
+
+                return upMile;
+            }
+
+            int ConvertAbsoluteMileToRelativeAfterCalibration(int absoluteMile, int imageInterval)
+            {
+                int direction = _DirectionInt == 0 ? 1 : _DirectionInt;
+                int relativeMile = (absoluteMile - _StartMile) * direction + imageInterval;
+                return Math.Max(0, relativeMile);
+            }
+
             string GetResultPicName(PicAndMile picAndMile)
             {
                 if (stanard == CityModelItem.甘肃省单位一定制)
@@ -727,8 +768,8 @@ namespace HNRoadFormatConverter.MyEntitys
             {
 
 
-                string pciBasePath = prj + "\\RoadImg\\Camera0";
-                string indexTxt = pciBasePath + "\\Road2Mile.txt";
+                string picBasePath = prj + "\\RoadImg\\Camera0";
+                string indexTxt = picBasePath + "\\Road2Mile.txt";
                 if (!File.Exists(indexTxt))
                 {
                     MessageBox.Show(prj + "路面图像索引文件不存在请检查！");
@@ -741,16 +782,20 @@ namespace HNRoadFormatConverter.MyEntitys
                     PicAndMile _picAndMile = new PicAndMile();
                     var sp = str.Split(' ');
                     int afterCalibrationMile = int.Parse(sp[0]);
-                    _picAndMile.BeforeCalibrationMile = _StartMile + _DirectionInt * (i + 1) * _RoadImgDis;
-                    _picAndMile.AfterCalibrationMile = afterCalibrationMile;
-                    _picAndMile.Mile = stanard == CityModelItem.农养国省道路况检测数据提交格式_2026年
-                        ? afterCalibrationMile
-                        : afterCalibrationMile + 2;
-                    _picAndMile.PicPath = pciBasePath + sp[1];
+                    bool shouldStop;
+                    int strictIntervalMile = GetImageIndexMile(i, _RoadImgDis, out shouldStop);
+                    _picAndMile.BeforeCalibrationMile = strictIntervalMile;
+                    _picAndMile.AfterCalibrationMile = ConvertAbsoluteMileToRelativeAfterCalibration(afterCalibrationMile, _RoadImgDis);
+                    _picAndMile.Mile = strictIntervalMile;
+                    _picAndMile.PicPath = picBasePath + sp[1];
                     _picAndMile.sourceTxt = str;
 
                     _picAndMile.ResultPicName = GetResultPicName(_picAndMile);
                     picAndMiles.Add(_picAndMile);
+                    if (shouldStop)
+                    {
+                        break;
+                    }
                 }
 
             }
@@ -770,30 +815,18 @@ namespace HNRoadFormatConverter.MyEntitys
                     PicAndMile _picAndMile = new PicAndMile();
                     var sp = str.Split(' ');
                     int afterCalibrationMile = int.Parse(sp[0]);
-                    _picAndMile.BeforeCalibrationMile = _StartMile + _DirectionInt * (i + 1) * _StreetImgDis;
-                    _picAndMile.AfterCalibrationMile = afterCalibrationMile;
-                    _picAndMile.Mile = afterCalibrationMile;
+                    bool shouldStop;
+                    int strictIntervalMile = GetImageIndexMile(i, _StreetImgDis, out shouldStop);
+                    _picAndMile.BeforeCalibrationMile = strictIntervalMile;
+                    _picAndMile.AfterCalibrationMile = ConvertAbsoluteMileToRelativeAfterCalibration(afterCalibrationMile, _StreetImgDis);
+                    _picAndMile.Mile = strictIntervalMile;
                     _picAndMile.PicPath = pciBasePath + sp[1];
                     _picAndMile.sourceTxt = str;
                     _picAndMile.ResultPicName = GetResultPicName(_picAndMile);
                     picAndMiles.Add(_picAndMile);
-                }
-                if (stanard != CityModelItem.农养国省道路况检测数据提交格式_2026年 && picAndMiles.Count > 1)
-                {
-                    int streetDistance = picAndMiles[1].Mile - picAndMiles[0].Mile;
-
-                    // 修复：创建新的列表或使用 for 循环重新赋值
-                    for (int i = 0; i < picAndMiles.Count; i++)
+                    if (shouldStop)
                     {
-                        // 创建新对象或修改现有对象的副本
-                        PicAndMile updated = picAndMiles[i];
-                        updated.Mile += streetDistance;
-                        if (updated.Mile <0)
-                        {
-                            updated.Mile = 0;
-                        }
-                        updated.ResultPicName = GetResultPicName(updated);
-                        picAndMiles[i] = updated; // 重新赋值给列表
+                        break;
                     }
                 }
 
@@ -807,6 +840,38 @@ namespace HNRoadFormatConverter.MyEntitys
         public List<PicAndMile> GetPicAndMilesHuNan(bool road)
         {
             List<PicAndMile> picAndMiles = new List<PicAndMile>();
+            int GetImageIndexMile(int imageIndex, int imageInterval, out bool shouldStop)
+            {
+                // 湖南模板同样按工程起终点边界和采集间隔生成图片索引桩号。
+                int totalDistance = Math.Abs(_StartMile - _EndMile);
+                if (totalDistance == 0 && _EndDmi > 0)
+                {
+                    totalDistance = _EndDmi;
+                }
+
+                shouldStop = false;
+                if (_DirectionInt < 0)
+                {
+                    int mile = totalDistance - (imageIndex + 1) * imageInterval;
+                    if (mile <= 0)
+                    {
+                        shouldStop = true;
+                        return 0;
+                    }
+
+                    return mile;
+                }
+
+                int upMile = (imageIndex + 1) * imageInterval;
+                if (upMile >= totalDistance)
+                {
+                    shouldStop = true;
+                    return totalDistance;
+                }
+
+                return upMile;
+            }
+
             if (road)
             {
 
@@ -819,11 +884,13 @@ namespace HNRoadFormatConverter.MyEntitys
                     System.Environment.Exit(0);
                 }
                 string[] strs = File.ReadAllLines(indexTxt);
-                foreach (var str in strs)
+                for (int i = 0; i < strs.Length; i++)
                 {
+                    var str = strs[i];
                     PicAndMile _picAndMile = new PicAndMile();
                     var sp = str.Split(' ');
-                    _picAndMile.Mile = int.Parse(sp[0]);
+                    bool shouldStop;
+                    _picAndMile.Mile = GetImageIndexMile(i, _RoadImgDis, out shouldStop);
                     _picAndMile.PicPath = pciBasePath + sp[1];
                     _picAndMile.sourceTxt = str;
 
@@ -831,6 +898,10 @@ namespace HNRoadFormatConverter.MyEntitys
                     string mile = Form1.ConvertIntToFormattedString(_picAndMile.Mile);
                     _picAndMile.ResultPicName = ConvertProName + "-" + mile + "-" + mile;
                     picAndMiles.Add(_picAndMile);
+                    if (shouldStop)
+                    {
+                        break;
+                    }
                 }
 
             }
@@ -844,17 +915,23 @@ namespace HNRoadFormatConverter.MyEntitys
                     System.Environment.Exit(0);
                 }
                 string[] strs = File.ReadAllLines(indexTxt);
-                foreach (var str in strs)
+                for (int i = 0; i < strs.Length; i++)
                 {
+                    var str = strs[i];
                     PicAndMile _picAndMile = new PicAndMile();
                     var sp = str.Split(' ');
-                    _picAndMile.Mile = int.Parse(sp[0]);
+                    bool shouldStop;
+                    _picAndMile.Mile = GetImageIndexMile(i, _StreetImgDis, out shouldStop);
                     _picAndMile.PicPath = pciBasePath + sp[1];
                     _picAndMile.sourceTxt = str;
                     string mile = Form1.ConvertIntToFormattedString(_picAndMile.Mile);
                     _picAndMile.ResultPicName = ConvertProName + "-" + mile + "-" + mile;
                     // _picAndMile.ResultPicName = DateDay + "_" + ConvertProName + "_" + (_picAndMile.Mile * 0.001).ToString("f3");
                     picAndMiles.Add(_picAndMile);
+                    if (shouldStop)
+                    {
+                        break;
+                    }
                 }
 
 

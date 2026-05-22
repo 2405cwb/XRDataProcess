@@ -185,24 +185,15 @@ namespace HNRoadFormatConverter.Exporters
                     float fontSize = Math.Max(18f, sourceImage.Width / 70f);
                     using (Font font = new Font("Microsoft YaHei", fontSize, FontStyle.Bold, GraphicsUnit.Pixel))
                     {
-                        SizeF textSize = graphics.MeasureString(watermarkText, font);
                         float padding = fontSize * 0.5f;
-                        RectangleF backRect = new RectangleF(
-                            padding,
-                            sourceImage.Height - textSize.Height - padding * 2,
-                            textSize.Width + padding * 2,
-                            textSize.Height + padding);
-
-                        using (Brush backBrush = new SolidBrush(Color.FromArgb(150, 0, 0, 0)))
-                        using (Brush textBrush = new SolidBrush(Color.White))
+                        using (Brush textBrush = new SolidBrush(Color.Red))
                         {
-                            graphics.FillRectangle(backBrush, backRect);
                             graphics.DrawString(
                                 watermarkText,
                                 font,
                                 textBrush,
-                                backRect.Left + padding,
-                                backRect.Top + padding * 0.35f);
+                                padding,
+                                padding);
                         }
                     }
                 }

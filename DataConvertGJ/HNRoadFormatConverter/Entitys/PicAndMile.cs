@@ -36,12 +36,12 @@ namespace HNRoadFormatConverter.Entitys
         public int Mile { get; set; }
 
         /// <summary>
-        /// 校桩前桩号，按工程起点和图像采集间隔累计。
+        /// 校桩前相对桩号，按工程起点从0开始和图像采集间隔累计。
         /// </summary>
         public int BeforeCalibrationMile { get; set; }
 
         /// <summary>
-        /// 校桩后桩号，从 Road2Mile.txt 或 Street2Mile.txt 读取。
+        /// 校桩后相对桩号，由 Road2Mile.txt 或 Street2Mile.txt 的绝对桩号换算得到。
         /// </summary>
         public int AfterCalibrationMile { get; set; }
 

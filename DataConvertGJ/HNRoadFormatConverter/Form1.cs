@@ -321,7 +321,6 @@ namespace HNRoadFormatConverter
             }
             if (string.IsNullOrEmpty(dlg.SelectedPath))
             {
-
                 return;
             }
             targetBasePath = dlg.SelectedPath;
