@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace HNRoadFormatConverter.Exporters
 {
@@ -65,6 +67,228 @@ namespace HNRoadFormatConverter.Exporters
             }
 
             return true;
+        }
+
+        public static void ExportProjectInfoCsv(
+            ProjectInfo project,
+            string exportDataPath,
+            ICollection<string> handledFiles)
+        {
+            Directory.CreateDirectory(exportDataPath);
+
+            string csvPath = Path.Combine(exportDataPath, "工程信息.csv");
+            string header = string.Join(",", new[]
+            {
+                "序号",
+                "工程名称",
+                "路线编码",
+                "路线名称",
+                "公路等级",
+                "路面类型",
+                "计算宽度",
+                "路幅",
+                "车道",
+                "起始桩号",
+                "终止桩号",
+                "测量单位",
+                "操作员",
+                "工程日期",
+                "天气"
+            });
+
+            List<string> lines = File.Exists(csvPath)
+                ? File.ReadAllLines(csvPath, Encoding.Default).Where(line => !string.IsNullOrWhiteSpace(line)).ToList()
+                : new List<string>();
+
+            if (lines.Count == 0 || !lines[0].StartsWith("序号,", StringComparison.Ordinal))
+            {
+                lines.Insert(0, header);
+            }
+            else
+            {
+                lines[0] = header;
+            }
+
+            string roadCode = TrimDirectionSuffix(project.ConvertProName);
+            string projectName = BuildProjectInfoName(project, roadCode);
+            lines = lines
+                .Where((line, index) => index == 0 || !IsSameProjectInfoRow(line, projectName, roadCode))
+                .ToList();
+
+            lines.Add(BuildProjectInfoRow(lines.Count, project, projectName, roadCode));
+
+            File.WriteAllLines(csvPath, lines, Encoding.Default);
+            handledFiles?.Add(csvPath);
+        }
+
+        private static string BuildProjectInfoRow(
+            int sequence,
+            ProjectInfo project,
+            string projectName,
+            string roadCode)
+        {
+            string[] fields =
+            {
+                sequence.ToString("000000", CultureInfo.InvariantCulture),
+                projectName,
+                roadCode,
+                project._RoadName ?? string.Empty,
+                project._RoadGrade ?? string.Empty,
+                NormalizeRoadSurface(project._RoadSurfaceName),
+                FormatNumber(project._RoadWidth),
+                GetDirectionName(project),
+                FormatLane(project.RoadNum ?? project._RoadNum),
+                FormatMeter(0),
+                FormatMeter(GetProjectDistance(project)),
+                project._MeasureUnit ?? string.Empty,
+                project._DataPerson ?? string.Empty,
+                string.IsNullOrWhiteSpace(project._DataDate) ? "0" : project._DataDate,
+                project._DataWeather ?? string.Empty
+            };
+
+            return string.Join(",", fields.Select(EscapeCsv));
+        }
+
+        private static string BuildProjectInfoName(ProjectInfo project, string roadCode)
+        {
+            string cityName = TrimCitySuffix(project._City);
+            string roadName = string.IsNullOrWhiteSpace(project._RoadName)
+                ? "省检"
+                : project._RoadName;
+            string lane = string.IsNullOrWhiteSpace(project.RoadNum)
+                ? project._RoadNum
+                : project.RoadNum;
+            string dateTime = (project._DataDate ?? string.Empty) + (project._DataTime ?? string.Empty);
+
+            return $"{cityName}+{roadName}+{roadCode}-{GetDirectionName(project)}-{FormatProjectNameLane(lane)}-{dateTime}";
+        }
+
+        private static bool IsSameProjectInfoRow(string line, string projectName, string roadCode)
+        {
+            string[] parts = line.Split(',');
+            return parts.Length > 2
+                && string.Equals(parts[1], projectName, StringComparison.Ordinal)
+                && string.Equals(parts[2], roadCode, StringComparison.Ordinal);
+        }
+
+        private static string GetDirectionName(ProjectInfo project)
+        {
+            return project._Direction == "A" ? "上行" : "下行";
+        }
+
+        private static string NormalizeRoadSurface(string roadSurface)
+        {
+            if (string.IsNullOrWhiteSpace(roadSurface))
+            {
+                return string.Empty;
+            }
+
+            if (roadSurface.Contains("路面"))
+            {
+                return roadSurface;
+            }
+
+            if (roadSurface.Contains("水泥"))
+            {
+                return "水泥混凝土路面";
+            }
+
+            if (roadSurface.Contains("沥青"))
+            {
+                return "沥青路面";
+            }
+
+            return roadSurface;
+        }
+
+        private static string FormatLane(string lane)
+        {
+            if (string.IsNullOrWhiteSpace(lane))
+            {
+                return string.Empty;
+            }
+
+            if (lane.Contains("车道"))
+            {
+                return lane;
+            }
+
+            switch (lane.Trim())
+            {
+                case "1":
+                    return "一车道";
+                case "2":
+                    return "二车道";
+                case "3":
+                    return "三车道";
+                case "4":
+                    return "四车道";
+                default:
+                    return lane + "车道";
+            }
+        }
+
+        private static string FormatProjectNameLane(string lane)
+        {
+            if (string.IsNullOrWhiteSpace(lane))
+            {
+                return string.Empty;
+            }
+
+            return lane.Contains("车道")
+                ? lane
+                : lane + "车道";
+        }
+
+        private static int GetProjectDistance(ProjectInfo project)
+        {
+            if (project._EndDmi > 0)
+            {
+                return project._EndDmi;
+            }
+
+            return Math.Abs(project._EndMile - project._StartMile);
+        }
+
+        private static string FormatNumber(string value)
+        {
+            if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double result)
+                || double.TryParse(value, NumberStyles.Float, CultureInfo.CurrentCulture, out result))
+            {
+                return result.ToString("0.000000", CultureInfo.InvariantCulture);
+            }
+
+            return string.Empty;
+        }
+
+        private static string FormatMeter(int value)
+        {
+            return value.ToString("0.000000", CultureInfo.InvariantCulture);
+        }
+
+        private static string EscapeCsv(string value)
+        {
+            if (value == null)
+            {
+                return string.Empty;
+            }
+
+            if (value.Contains(",") || value.Contains("\"") || value.Contains("\r") || value.Contains("\n"))
+            {
+                return "\"" + value.Replace("\"", "\"\"") + "\"";
+            }
+
+            return value;
+        }
+
+        private static string TrimCitySuffix(string cityName)
+        {
+            if (string.IsNullOrWhiteSpace(cityName))
+            {
+                return string.Empty;
+            }
+
+            return cityName.Replace("市", string.Empty);
         }
 
         public static National2026PictureExportTask CreatePictureTask(

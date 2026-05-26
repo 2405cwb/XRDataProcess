@@ -362,6 +362,7 @@ namespace HNRoadFormatConverter
                         MessageBox.Show(errorMessage);
                         continue;
                     }
+                    National2026ExportService.ExportProjectInfoCsv(pro, outPath, handelCsvFiles);
 
                     if (chebtn.Checked)
                     {
@@ -2983,9 +2984,6 @@ namespace HNRoadFormatConverter
             //    SelectedPath = _config.UserPath,
             //    ShowNewFolderButton = true
             //})
-
-
-
             {
                 if (dlg.ShowDialog(this) != DialogResult.OK) // 传入父窗体，确保居中
                     return returnSelectPath;

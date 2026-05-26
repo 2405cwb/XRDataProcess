@@ -1,4 +1,5 @@
 ﻿//#define 平整度测试
+using DevExpress.Utils.About;
 using DevExpress.Utils.CodedUISupport;
 using DevExpress.XtraBars.Docking2010.Views.Widget;
 using Framework.Log;
@@ -203,7 +204,7 @@ namespace XRDataProcess
 
             if (_Setting.Acc_IRI == 0)
             {
-                 GenerateIRI_NEW(resamplefname, dislen, "resample.txt", datasrc, side); 
+                 GenerateIRI_NEW(resamplefname, dislen, "resample.txt", datasrc, side, _ProjectInfo); 
 
                // WorkBankIRIAlgo_withSpeed(resamplefname, "resample.txt", dislen * 4,side); 
                 //GenerateIRI(resamplefname, 0.1f, "resample.txt", datasrc, side);
@@ -1448,7 +1449,7 @@ namespace XRDataProcess
         /// <param name="fname">输入文件名</param>
         /// <param name="datasrc">true: 加速度计数据，false: 纵断面数据</param>
         ///</summary> 
-        public static void GenerateIRI_NEW(string fpath, int vallen, string fname, bool datasrc, int side)
+        public static void GenerateIRI_NEW(string fpath, int vallen, string fname, bool datasrc, int side,ProjectInfo projectInfo = null)
         {
              
             // 步骤1: 加载速度修正参数（如果存在）
@@ -1459,7 +1460,12 @@ namespace XRDataProcess
             var (oridata, toridata, oritime, sdata, len) = LoadData(fpath);
 
 
-
+            int maxRawLen = (int)Math.Round(projectInfo._EndDmi / 0.05);
+            len = Math.Min(len, maxRawLen);
+            oridata = oridata.Take(len).ToArray();
+            toridata = toridata.Take(len).ToArray();
+            oritime = oritime.Take(len).ToArray();
+            sdata = sdata.Take(len).ToArray();
 
             // 步骤3: 应用均值滤波（可选，默认注释，与原始版本一致）
             for (int i = 2; i < len - 2; ++i)

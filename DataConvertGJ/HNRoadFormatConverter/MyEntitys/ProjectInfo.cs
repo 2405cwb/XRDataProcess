@@ -66,6 +66,9 @@ namespace HNRoadFormatConverter.MyEntitys
         public string _DataTime;
         public string _DataPerson;
         public string _DataWeather;
+        public string _RoadWidth;
+        public string _RoadSurfaceName;
+        public string _MeasureUnit;
         bool IsComplete = false;
 
         /// <summary>
@@ -443,12 +446,14 @@ namespace HNRoadFormatConverter.MyEntitys
                         }
                         break;
                     case "公路等级": _RoadGrade = s[1]; break;
+                    case "道路宽度": _RoadWidth = s[1]; break;
 
                     case "工程终点道路标识桩号":
                         _EndMile = Convert.ToInt32(s[1].Split('+')[0].Replace("K", "")) * 1000 +
                                    Convert.ToInt32(s[1].Split('+')[1]); break;
                     case "路面材质":
                         {
+                            _RoadSurfaceName = s[1];
                             try
                             {
                                 _RoadType = (short)RoadDiseaseTypes.roadtypedict.Where(t => t.Key.Contains(s[1])).First().Value;
@@ -470,12 +475,18 @@ namespace HNRoadFormatConverter.MyEntitys
 
                         }
                     case "工程开始时刻": _DataTime = s[1]; DateMin = s[1]; break;
+                    case "检测员": _DataPerson = s[1]; break;
+                    case "操作员": _DataPerson = s[1]; break;
+                    case "检测天气": _DataWeather = s[1]; break;
+                    case "天气": _DataWeather = s[1]; break;
+                    case "测量单位": _MeasureUnit = s[1]; break;
                     case "车道":
                         _RoadNum = s[1];
                         RoadNum = s[1];
                         break;
 
                     case "采集日期": _DataDate = s[1]; DateDay = s[1]; break;
+                    case "工程日期": _DataDate = s[1]; DateDay = s[1]; break;
 
                     case "县级行政区划代码":
                         {
