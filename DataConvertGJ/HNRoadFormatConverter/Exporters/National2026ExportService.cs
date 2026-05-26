@@ -138,8 +138,8 @@ namespace HNRoadFormatConverter.Exporters
                 FormatNumber(project._RoadWidth),
                 GetDirectionName(project),
                 FormatLane(project.RoadNum ?? project._RoadNum),
-                FormatMeter(0),
-                FormatMeter(GetProjectDistance(project)),
+                FormatMeter(project._StartMile),
+                FormatMeter(project._EndMile),
                 project._MeasureUnit ?? string.Empty,
                 project._DataPerson ?? string.Empty,
                 string.IsNullOrWhiteSpace(project._DataDate) ? "0" : project._DataDate,
@@ -238,16 +238,6 @@ namespace HNRoadFormatConverter.Exporters
             return lane.Contains("车道")
                 ? lane
                 : lane + "车道";
-        }
-
-        private static int GetProjectDistance(ProjectInfo project)
-        {
-            if (project._EndDmi > 0)
-            {
-                return project._EndDmi;
-            }
-
-            return Math.Abs(project._EndMile - project._StartMile);
         }
 
         private static string FormatNumber(string value)

@@ -721,6 +721,8 @@ namespace HNRoadFormatConverter.MyEntitys
         public List<PicAndMile> GetPicAndMiles(bool road, CityModelItem stanard)
         {
             List<PicAndMile> picAndMiles = new List<PicAndMile>();
+            bool isNational2026 = stanard == CityModelItem.农养国省道路况检测数据提交格式_2026年;
+
             int GetImageIndexMile(int imageIndex, int imageInterval, out bool shouldStop)
             {
                 // 图像 fileindex 的桩号按工程起终点边界和采集间隔生成，不使用 2Mile.txt 的校桩值。
@@ -753,6 +755,58 @@ namespace HNRoadFormatConverter.MyEntitys
                 }
 
                 return upMile;
+            }
+
+            int GetNational2026BeforeCalibrationMile(int imageIndex, int imageInterval, out bool shouldStop)
+            {
+                // 2026 规范不生成 fileindex.txt，图片文件名本身必须写实际桩号。
+                int direction = _DirectionInt == 0 ? 1 : _DirectionInt;
+                int mile = _StartMile + direction * (imageIndex + 1) * imageInterval;
+
+                shouldStop = false;
+                if (direction > 0 && mile >= _EndMile)
+                {
+                    shouldStop = true;
+                    return _EndMile;
+                }
+
+                if (direction < 0 && mile <= _EndMile)
+                {
+                    shouldStop = true;
+                    return Math.Max(0, _EndMile);
+                }
+
+                if (mile < 0)
+                {
+                    shouldStop = true;
+                    return 0;
+                }
+
+                return mile;
+            }
+
+            int GetNational2026AfterCalibrationMile(int startMileFrom2Mile, int imageInterval)
+            {
+                // Road2Mile.txt / Street2Mile.txt 记录的是图片起点桩号；2026 客户样例要求图片终点桩号。
+                int direction = _DirectionInt == 0 ? 1 : _DirectionInt;
+                int mile = startMileFrom2Mile + direction * imageInterval;
+
+                if (direction > 0 && mile >= _EndMile)
+                {
+                    return _EndMile;
+                }
+
+                if (direction < 0 && mile <= _EndMile)
+                {
+                    return Math.Max(0, _EndMile);
+                }
+
+                if (mile < 0)
+                {
+                    return 0;
+                }
+
+                return mile;
             }
 
             int ConvertAbsoluteMileToRelativeAfterCalibration(int absoluteMile, int imageInterval)
@@ -793,11 +847,15 @@ namespace HNRoadFormatConverter.MyEntitys
                     PicAndMile _picAndMile = new PicAndMile();
                     var sp = str.Split(' ');
                     int afterCalibrationMile = int.Parse(sp[0]);
-                    bool shouldStop;
-                    int strictIntervalMile = GetImageIndexMile(i, _RoadImgDis, out shouldStop);
-                    _picAndMile.BeforeCalibrationMile = strictIntervalMile;
-                    _picAndMile.AfterCalibrationMile = ConvertAbsoluteMileToRelativeAfterCalibration(afterCalibrationMile, _RoadImgDis);
-                    _picAndMile.Mile = strictIntervalMile;
+                    bool shouldStop = false;
+                    int imageMile = isNational2026
+                        ? GetNational2026BeforeCalibrationMile(i, _RoadImgDis, out shouldStop)
+                        : GetImageIndexMile(i, _RoadImgDis, out shouldStop);
+                    _picAndMile.BeforeCalibrationMile = imageMile;
+                    _picAndMile.AfterCalibrationMile = isNational2026
+                        ? GetNational2026AfterCalibrationMile(afterCalibrationMile, _RoadImgDis)
+                        : ConvertAbsoluteMileToRelativeAfterCalibration(afterCalibrationMile, _RoadImgDis);
+                    _picAndMile.Mile = imageMile;
                     _picAndMile.PicPath = picBasePath + sp[1];
                     _picAndMile.sourceTxt = str;
 
@@ -826,11 +884,15 @@ namespace HNRoadFormatConverter.MyEntitys
                     PicAndMile _picAndMile = new PicAndMile();
                     var sp = str.Split(' ');
                     int afterCalibrationMile = int.Parse(sp[0]);
-                    bool shouldStop;
-                    int strictIntervalMile = GetImageIndexMile(i, _StreetImgDis, out shouldStop);
-                    _picAndMile.BeforeCalibrationMile = strictIntervalMile;
-                    _picAndMile.AfterCalibrationMile = ConvertAbsoluteMileToRelativeAfterCalibration(afterCalibrationMile, _StreetImgDis);
-                    _picAndMile.Mile = strictIntervalMile;
+                    bool shouldStop = false;
+                    int imageMile = isNational2026
+                        ? GetNational2026BeforeCalibrationMile(i, _StreetImgDis, out shouldStop)
+                        : GetImageIndexMile(i, _StreetImgDis, out shouldStop);
+                    _picAndMile.BeforeCalibrationMile = imageMile;
+                    _picAndMile.AfterCalibrationMile = isNational2026
+                        ? GetNational2026AfterCalibrationMile(afterCalibrationMile, _StreetImgDis)
+                        : ConvertAbsoluteMileToRelativeAfterCalibration(afterCalibrationMile, _StreetImgDis);
+                    _picAndMile.Mile = imageMile;
                     _picAndMile.PicPath = pciBasePath + sp[1];
                     _picAndMile.sourceTxt = str;
                     _picAndMile.ResultPicName = GetResultPicName(_picAndMile);
