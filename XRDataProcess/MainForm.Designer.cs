@@ -126,6 +126,7 @@
             this.barButtonItem_loads = new DevExpress.XtraBars.BarButtonItem();
             this.barButtonItem58 = new DevExpress.XtraBars.BarButtonItem();
             this.barButtonItem59 = new DevExpress.XtraBars.BarButtonItem();
+            this.barButtonItem60 = new DevExpress.XtraBars.BarButtonItem();
             this.ribbonMiniToolbar1 = new DevExpress.XtraBars.Ribbon.RibbonMiniToolbar(this.components);
             this.ribbonPage1 = new DevExpress.XtraBars.Ribbon.RibbonPage();
             this.ribbonPageGroup1 = new DevExpress.XtraBars.Ribbon.RibbonPageGroup();
@@ -272,10 +273,11 @@
             this.barButtonItem57,
             this.barButtonItem_loads,
             this.barButtonItem58,
-            this.barButtonItem59});
+            this.barButtonItem59,
+            this.barButtonItem60});
             this.ribbonControl1.Location = new System.Drawing.Point(0, 0);
             this.ribbonControl1.Margin = new System.Windows.Forms.Padding(32);
-            this.ribbonControl1.MaxItemId = 202;
+            this.ribbonControl1.MaxItemId = 203;
             this.ribbonControl1.MiniToolbars.Add(this.ribbonMiniToolbar1);
             this.ribbonControl1.Name = "ribbonControl1";
             this.ribbonControl1.OptionsMenuMinWidth = 3573;
@@ -524,7 +526,7 @@
             // 
             // barButtonItem3
             // 
-            this.barButtonItem3.Caption = "默认布局";
+            this.barButtonItem3.Caption = "恢复默认布局";
             this.barButtonItem3.Id = 6;
             this.barButtonItem3.ImageOptions.ImageIndex = 5;
             this.barButtonItem3.Name = "barButtonItem3";
@@ -1131,7 +1133,16 @@
             this.barButtonItem59.ImageOptions.LargeImage = ((System.Drawing.Image)(resources.GetObject("barButtonItem59.ImageOptions.LargeImage")));
             this.barButtonItem59.Name = "barButtonItem59";
             this.barButtonItem59.ItemClick += new DevExpress.XtraBars.ItemClickEventHandler(this.barButtonItem59_ItemClick);
-            // 
+            //
+            // barButtonItem60
+            //
+            this.barButtonItem60.Caption = "打开用户目录";
+            this.barButtonItem60.Id = 202;
+            this.barButtonItem60.ImageOptions.ImageUri.Uri = "Open";
+            this.barButtonItem60.Name = "barButtonItem60";
+            this.barButtonItem60.RibbonStyle = DevExpress.XtraBars.Ribbon.RibbonItemStyles.Large;
+            this.barButtonItem60.ItemClick += new DevExpress.XtraBars.ItemClickEventHandler(this.barButtonItem60_ItemClick);
+            //
             // ribbonPage1
             // 
             this.ribbonPage1.Groups.AddRange(new DevExpress.XtraBars.Ribbon.RibbonPageGroup[] {
@@ -1266,6 +1277,7 @@
             this.ribbonPageGroup8.ItemLinks.Add(this.barButtonItem55);
             this.ribbonPageGroup8.ItemLinks.Add(this.barButtonItem56);
             this.ribbonPageGroup8.ItemLinks.Add(this.barButtonItem58);
+            this.ribbonPageGroup8.ItemLinks.Add(this.barButtonItem60);
             this.ribbonPageGroup8.Name = "ribbonPageGroup8";
             this.ribbonPageGroup8.Text = "工具";
             // 
@@ -1634,5 +1646,6 @@
         private DevExpress.XtraBars.Docking.ControlContainer dockPanel3_Container;
         private DevExpress.XtraBars.BarButtonItem barButtonItem58;
         private DevExpress.XtraBars.BarButtonItem barButtonItem59;
+        private DevExpress.XtraBars.BarButtonItem barButtonItem60;
     }
 }

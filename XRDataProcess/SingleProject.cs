@@ -130,7 +130,8 @@ namespace XRDataProcess
             if (File.Exists(defaultPath))
             {
                 TryRestoreLayout(defaultPath, "默认项目布局");
-                _isLayoutSafeToSave = true;
+                // 默认布局只用于本次显示，不能在关闭时覆盖用户目录的项目布局。
+                _isLayoutSafeToSave = false;
             }
         }
 
@@ -154,7 +155,7 @@ namespace XRDataProcess
                 BackupBadLayoutFile(userPath);
                 if (File.Exists(defaultPath) && TryRestoreLayout(defaultPath, "默认项目布局"))
                 {
-                    return true;
+                    return false;
                 }
 
                 return false;
@@ -172,6 +173,7 @@ namespace XRDataProcess
         {
             try
             {
+                ValidateLayoutFile(layoutPath);
                 dockManager_main.RestoreLayoutFromXml(layoutPath);
                 return true;
             }
@@ -378,8 +380,7 @@ namespace XRDataProcess
                 string folder = System.IO.Path.GetDirectoryName(layoutPath);
                 string fileName = System.IO.Path.GetFileNameWithoutExtension(layoutPath);
                 string extension = System.IO.Path.GetExtension(layoutPath);
-                string backupPath = System.IO.Path.Combine(folder, fileName + ".bad" + extension);
-                TryDeleteFile(backupPath);
+                string backupPath = System.IO.Path.Combine(folder, string.Format("{0}.bad.{1:yyyyMMddHHmmssfff}{2}", fileName, DateTime.Now, extension));
                 File.Move(layoutPath, backupPath);
             }
             catch (Exception ex)
@@ -952,7 +953,7 @@ namespace XRDataProcess
             _winproj.EventUpdateProjectInfo += new EventHandler(_winproj_EventUpdateProjectInfo);
             _winproj.Show();
 
-            if (Directory.Exists(_DataDir.FullName + "\\RoadImg\\Camera0"))
+            if (Directory.Exists(_DataDir.FullName + "\\RoadImg\\Camera0") && _ProjectInfo._HasInitialRoadType)
             {
                 Image2Mile("Road", 0, _ProjectInfo._RoadImgDis, "jpg");
 
@@ -1025,6 +1026,11 @@ namespace XRDataProcess
                 _winroadis.EventJump2Dis += new EventHandler(_winroadis_EventJump2Dis);
                 _winroadis.EventUpdateDis += new EventHandler(_winroadis_EventUpdateDis);
                 _winroadis.Show();
+            }
+
+            if (Directory.Exists(_DataDir.FullName + "\\RoadImg\\Camera0") && !_ProjectInfo._HasInitialRoadType)
+            {
+                MessageBox.Show("该工程尚未指定有效的起始路面材质，已禁止打开病害绘制。请在【工程信息】中选择路面材质并保存后重载工程。", "起始材质必填", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
             if (Directory.Exists(_DataDir.FullName + "\\StreetImg"))
@@ -2306,6 +2312,21 @@ namespace XRDataProcess
 
                 }
             }
+            else if (_Setting.ExcelType ==14)
+            {
+                if (IsOutputxls[0])
+                {
+                    for (int i = 0; i < xlslen[0].Length; ++i)
+                    {
+                       
+                        if (MyExcelCity.InitProData(_DataDir, _ProjectInfo, xlslen[0][i], true, true, false, false, false, _Setting.PartType, true, false))
+                            MyExcelCity.OutputChongQingSumExcel(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[0][i]);
+                        else
+                            MessageBox.Show("加载IRM数据失败，请先计算IRM！");
+                    }
+                       
+                }
+            }
             else
             {
                 if (IsOutputxls[0])
@@ -3145,11 +3166,11 @@ namespace XRDataProcess
                 //水泥
                 if (IsOutputxls[1])
                 {
-                    for (int i = 0; i < xlslen[0].Length; ++i)
+                    for (int i = 0; i < xlslen[1].Length; ++i)
                     {
-                        if (MyExcelVillageDegreeSmall.InitProData(_DataDir, _ProjectInfo, xlslen[0][i], true, false, false, false, false, true))
+                        if (MyExcelVillageDegreeSmall.InitProData(_DataDir, _ProjectInfo, xlslen[1][i], true, false, false, false, false, true))
 
-                            MyExcelVillageDegreeSmall.OutputSNDamage_hn(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[0][i]);
+                            MyExcelVillageDegreeSmall.OutputSNDamage_hn(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[1][i]);
                         else
                             MessageBox.Show("加载IRM数据失败，请先计算IRM！");
                     }
@@ -3157,11 +3178,11 @@ namespace XRDataProcess
                 //沥青
                 if (IsOutputxls[2])
                 {
-                    for (int i = 0; i < xlslen[0].Length; ++i)
+                    for (int i = 0; i < xlslen[2].Length; ++i)
                     {
-                        if (MyExcelVillageDegreeSmall.InitProData(_DataDir, _ProjectInfo, xlslen[0][i], true, false, false, false, false, true))
+                        if (MyExcelVillageDegreeSmall.InitProData(_DataDir, _ProjectInfo, xlslen[2][i], true, false, false, false, false, true))
 
-                            MyExcelVillageDegreeSmall.OutputLQDamage_hn(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[0][i]);
+                            MyExcelVillageDegreeSmall.OutputLQDamage_hn(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[2][i]);
                         else
                             MessageBox.Show("加载IRM数据失败，请先计算IRM！");
                     }
@@ -3169,11 +3190,11 @@ namespace XRDataProcess
                 //病害流水
                 if (IsOutputxls[3])
                 {
-                    for (int i = 0; i < xlslen[0].Length; ++i)
+                    for (int i = 0; i < xlslen[3].Length; ++i)
                     {
-                        if (MyExcelVillageDegreeSmall.InitProData(_DataDir, _ProjectInfo, xlslen[0][i], true, false, false, false, false, true))
+                        if (MyExcelVillageDegreeSmall.InitProData(_DataDir, _ProjectInfo, xlslen[3][i], true, false, false, false, false, true))
 
-                            MyExcelVillageDegreeSmall.OutputAllDamage_hn(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[0][i]);
+                            MyExcelVillageDegreeSmall.OutputAllDamage_hn(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[3][i]);
                         else
                             MessageBox.Show("加载IRM数据失败，请先计算IRM！");
                     }
@@ -3181,10 +3202,14 @@ namespace XRDataProcess
                 //重庆 公里指标导入模板
                 if (IsOutputxls[4])
                 {
-                    if (MyExcelVillageDegreeSmall.InitProData(_DataDir, _ProjectInfo, 1000, true, true, false, false, false, true))
-                        MyExcelVillageDegreeSmall.OutputChongQingSumExcel(excelApp, xlspath, _ProjectInfo, _DataDir, 1000);
-                    else
-                        MessageBox.Show("加载IRM数据失败，请先计算IRM！");
+                    for (int i = 0; i < xlslen[4].Length; ++i)
+                    {
+                        if (MyExcelVillageDegreeSmall.InitProData(_DataDir, _ProjectInfo, xlslen[4][i], true, true, false, false, false, true))
+                            MyExcelVillageDegreeSmall.OutputChongQingSumExcel(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[4][i]);
+                        else
+                            MessageBox.Show("加载IRM数据失败，请先计算IRM！");
+                    }
+                     
 
 
                 }
@@ -5631,30 +5656,25 @@ namespace XRDataProcess
 
                 if (IsOutputxls[0])
                 {
-                    for (int i = 0; i < xlslen[0].Length; ++i)
-                    {
+                    //(5211)路面破损评定汇总表
 
-                        //(5211)路面破损评定汇总表
-                        if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, xlslen[0][i], true, false, false, false, false, true))
-                        {
-                            MyExcelVillageDegree.OutputPci_2024(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[0][i]);
-                        }
-                        else
-                            MessageBox.Show("加载IRM数据失败，请先计算IRM！");
+                    if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, 1000, true, false, false, false, false, true))
+                    {
+                        MyExcelVillageDegree.OutputPci_2024(excelApp, xlspath, _ProjectInfo, _DataDir, 1000);
                     }
+                    else
+                        MessageBox.Show("加载IRM数据失败，请先计算IRM！");
+             
                 }
                 if (IsOutputxls[1])
                 {
-                    for (int i = 0; i < xlslen[1].Length; ++i)
+                    //(5211)路面平整度评定汇总表
+                    if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, 1000, false, true, false, false, false, true))
                     {
-                        //(5211)路面平整度评定汇总表
-                        if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, xlslen[1][i], false, true, false, false, false, true))
-                        {
-                            MyExcelVillageDegree.OutputRqi_2024(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[1][i]);
-                        }
-                        else
-                            MessageBox.Show("加载IRM数据失败，请先计算IRM！");
+                        MyExcelVillageDegree.OutputRqi_2024(excelApp, xlspath, _ProjectInfo, _DataDir,1000);
                     }
+                    else
+                        MessageBox.Show("加载IRM数据失败，请先计算IRM！");
                 }
                 if (IsOutputxls[2])
                 {
@@ -5767,16 +5787,12 @@ namespace XRDataProcess
                 }
                 if (IsOutputxls[10])
                 {
-                    for (int i = 0; i < xlslen[10].Length; ++i)
+                    if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, 1000, true, true, false, false, false, true))
                     {
-
-                        if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, xlslen[10][i], true, true, false, false, false, true))
-                        {
-                            MyExcelVillageDegree.OutputPQI_2024(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[10][i]);
-                        }
-                        else
-                            MessageBox.Show("加载IRM数据失败，请先计算IRM！");
+                        MyExcelVillageDegree.OutputPQI_2024(excelApp, xlspath, _ProjectInfo, _DataDir, 1000);
                     }
+                    else
+                        MessageBox.Show("加载IRM数据失败，请先计算IRM！");
                 }
                 if (IsOutputxls[11])
                 {
@@ -5986,9 +6002,9 @@ namespace XRDataProcess
                 {
                     for (int i = 0; i < xlslen[1].Length; ++i)
                     {
-                        if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, xlslen[0][i], true, false, false, false, false, true))
+                        if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, xlslen[1][i], true, false, false, false, false, true))
 
-                            MyExcelVillageDegree.OutputSNDamage_hn(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[0][i]);
+                            MyExcelVillageDegree.OutputSNDamage_hn(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[1][i]);
                         else
                             MessageBox.Show("加载IRM数据失败，请先计算IRM！");
                     }
@@ -5999,9 +6015,9 @@ namespace XRDataProcess
                 {
                     for (int i = 0; i < xlslen[2].Length; ++i)
                     {
-                        if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, xlslen[0][i], true, false, false, false, false, true))
+                        if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, xlslen[2][i], true, false, false, false, false, true))
 
-                            MyExcelVillageDegree.OutputLQDamage_hn(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[0][i]);
+                            MyExcelVillageDegree.OutputLQDamage_hn(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[2][i]);
                         else
                             MessageBox.Show("加载IRM数据失败，请先计算IRM！");
                     }
@@ -6011,9 +6027,9 @@ namespace XRDataProcess
                 {
                     for (int i = 0; i < xlslen[3].Length; ++i)
                     {
-                        if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, xlslen[0][i], true, false, false, false, false, true))
+                        if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, xlslen[3][i], true, false, false, false, false, true))
 
-                            MyExcelVillageDegree.OutputAllDamage_hn(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[0][i]);
+                            MyExcelVillageDegree.OutputAllDamage_hn(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[3][i]);
                         else
                             MessageBox.Show("加载IRM数据失败，请先计算IRM！");
                     }
@@ -6022,10 +6038,14 @@ namespace XRDataProcess
                 //重庆 公里指标导入模板
                 if (IsOutputxls[4])
                 {
-                    if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, 1000, true, true, false, false, false, true))
-                        MyExcelVillageDegree.OutputChongQingSumExcel(excelApp, xlspath, _ProjectInfo, _DataDir, 1000);
-                    else
-                        MessageBox.Show("加载IRM数据失败，请先计算IRM！");
+                    for (int i = 0; i < xlslen[4].Length; ++i)
+                    {
+                        if (MyExcelVillageDegree.InitProData(_DataDir, _ProjectInfo, xlslen[4][i], true, true, false, false, false, true))
+                            MyExcelVillageDegree.OutputChongQingSumExcel(excelApp, xlspath, _ProjectInfo, _DataDir, xlslen[4][i]);
+                        else
+                            MessageBox.Show("加载IRM数据失败，请先计算IRM！");
+                    }
+                       
                 }
 
                 if (IsOutputxls[5])
@@ -9949,7 +9969,7 @@ namespace XRDataProcess
                 sr.Close();
                 fr.Close();
 
-                if (gpstrigstrs.Count <= 0)
+                if (gpstrigstrs.Count <= 5)
                     return false;
 
                 File.WriteAllLines(string.Format("{0}\\GPSTime2Dmi.txt", _DataDir.FullName), gpstrigstrs.ToArray());

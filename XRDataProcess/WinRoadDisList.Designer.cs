@@ -38,6 +38,7 @@
             this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.button_update = new System.Windows.Forms.Button();
+            this.button_delete = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
@@ -92,7 +93,7 @@
             this.Column2});
             this.dataGridView_Dislist.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView_Dislist.Location = new System.Drawing.Point(3, 32);
-            this.dataGridView_Dislist.MultiSelect = false;
+            this.dataGridView_Dislist.MultiSelect = true;
             this.dataGridView_Dislist.Name = "dataGridView_Dislist";
             this.dataGridView_Dislist.ReadOnly = true;
             this.dataGridView_Dislist.RowHeadersVisible = false;
@@ -140,10 +141,13 @@
             // 
             // tableLayoutPanel1
             // 
-            this.tableLayoutPanel1.ColumnCount = 1;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.ColumnCount = 2;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.Controls.Add(this.dataGridView_Dislist, 0, 1);
             this.tableLayoutPanel1.Controls.Add(this.button_update, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.button_delete, 1, 0);
+            this.tableLayoutPanel1.SetColumnSpan(this.dataGridView_Dislist, 2);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 3);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -158,11 +162,22 @@
             this.button_update.Dock = System.Windows.Forms.DockStyle.Fill;
             this.button_update.Location = new System.Drawing.Point(3, 3);
             this.button_update.Name = "button_update";
-            this.button_update.Size = new System.Drawing.Size(520, 23);
+            this.button_update.Size = new System.Drawing.Size(257, 23);
             this.button_update.TabIndex = 2;
             this.button_update.Text = "刷新病害列表";
             this.button_update.UseVisualStyleBackColor = true;
             this.button_update.Click += new System.EventHandler(this.button_update_Click);
+            //
+            // button_delete
+            //
+            this.button_delete.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.button_delete.Location = new System.Drawing.Point(266, 3);
+            this.button_delete.Name = "button_delete";
+            this.button_delete.Size = new System.Drawing.Size(257, 23);
+            this.button_delete.TabIndex = 3;
+            this.button_delete.Text = "删除所选病害";
+            this.button_delete.UseVisualStyleBackColor = true;
+            this.button_delete.Click += new System.EventHandler(this.button_delete_Click);
             // 
             // tabControl1
             // 
@@ -458,6 +473,7 @@
         private System.Windows.Forms.DataGridView dataGridView_Dislist;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Button button_update;
+        private System.Windows.Forms.Button button_delete;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;

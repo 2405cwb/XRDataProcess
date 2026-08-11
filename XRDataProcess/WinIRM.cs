@@ -822,12 +822,14 @@ namespace XRDataProcess
 
         private void panel_RutPoints_Resize(object sender, EventArgs e)
         {
-            try
-            {
-                trackball.UpdataScreen(new Rectangle(0, 0, glc.Width, glc.Height));
-            }
-            catch(Exception ex)
-            {}
+            if (trackball == null || glc == null || glc.IsDisposed)
+                return;
+
+            Size size = glc.ClientSize;
+            if (size.Width <= 0 || size.Height <= 0)
+                return;
+
+            trackball.UpdataScreen(new Rectangle(Point.Empty, size));
         }
         
         //双车辙，整条激光线计算三个车辙值

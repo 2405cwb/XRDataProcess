@@ -40,6 +40,7 @@
             this.tbox_mile = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.button_add = new System.Windows.Forms.Button();
+            this.button_deleteMark = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
@@ -59,6 +60,7 @@
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.button3 = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
+            this.button_deleteCali = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView_Mark)).BeginInit();
             this.tableLayoutPanel1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -81,7 +83,7 @@
             this.Column_Mark});
             this.dataGridView_Mark.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView_Mark.Location = new System.Drawing.Point(3, 107);
-            this.dataGridView_Mark.MultiSelect = false;
+            this.dataGridView_Mark.MultiSelect = true;
             this.dataGridView_Mark.Name = "dataGridView_Mark";
             this.dataGridView_Mark.ReadOnly = true;
             this.dataGridView_Mark.RowHeadersVisible = false;
@@ -92,7 +94,6 @@
             this.dataGridView_Mark.TabIndex = 0;
             this.dataGridView_Mark.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView_Mark_CellContentClick);
             this.dataGridView_Mark.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dataGridView_Mark_CellMouseDoubleClick);
-            this.dataGridView_Mark.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.dataGridView_Mark_RowsRemoved);
             this.dataGridView_Mark.Sorted += new System.EventHandler(this.dataGridView_Mark_Sorted);
             // 
             // Column_Mile
@@ -204,16 +205,28 @@
             // 
             // button_add
             // 
-            this.tableLayoutPanel2.SetColumnSpan(this.button_add, 2);
             this.button_add.Dock = System.Windows.Forms.DockStyle.Fill;
             this.button_add.Location = new System.Drawing.Point(176, 29);
             this.button_add.Margin = new System.Windows.Forms.Padding(0);
             this.button_add.Name = "button_add";
-            this.button_add.Size = new System.Drawing.Size(178, 29);
+            this.button_add.Size = new System.Drawing.Size(88, 29);
             this.button_add.TabIndex = 110;
             this.button_add.Text = "添加";
             this.button_add.UseVisualStyleBackColor = true;
             this.button_add.Click += new System.EventHandler(this.button_add_Click);
+            //
+            // button_deleteMark
+            //
+            this.button_deleteMark.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.button_deleteMark.Location = new System.Drawing.Point(265, 29);
+            this.button_deleteMark.Margin = new System.Windows.Forms.Padding(0);
+            this.button_deleteMark.Name = "button_deleteMark";
+            this.button_deleteMark.Size = new System.Drawing.Size(89, 29);
+            this.button_deleteMark.TabIndex = 117;
+            this.button_deleteMark.Text = "删除所选";
+            this.button_deleteMark.UseVisualStyleBackColor = true;
+            this.button_deleteMark.Click += new System.EventHandler(this.button_deleteMark_Click);
+            this.tableLayoutPanel2.Controls.Add(this.button_deleteMark, 3, 1);
             // 
             // label3
             // 
@@ -324,20 +337,22 @@
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 50F));
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel3.Controls.Add(this.dataGridView1, 0, 2);
+            this.tableLayoutPanel3.Controls.Add(this.dataGridView1, 0, 3);
             this.tableLayoutPanel3.Controls.Add(this.label4, 0, 0);
             this.tableLayoutPanel3.Controls.Add(this.label5, 2, 0);
             this.tableLayoutPanel3.Controls.Add(this.textBox1, 1, 0);
             this.tableLayoutPanel3.Controls.Add(this.textBox2, 3, 0);
             this.tableLayoutPanel3.Controls.Add(this.button3, 0, 1);
             this.tableLayoutPanel3.Controls.Add(this.button4, 2, 1);
+            this.tableLayoutPanel3.Controls.Add(this.button_deleteCali, 0, 2);
             this.tableLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel3.Location = new System.Drawing.Point(3, 3);
             this.tableLayoutPanel3.Name = "tableLayoutPanel3";
-            this.tableLayoutPanel3.RowCount = 3;
-            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 14.28571F));
-            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 14.28571F));
-            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 71.42857F));
+            this.tableLayoutPanel3.RowCount = 4;
+            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
+            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
+            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28F));
+            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel3.Size = new System.Drawing.Size(354, 255);
             this.tableLayoutPanel3.TabIndex = 0;
             // 
@@ -351,18 +366,17 @@
             this.dataGridViewTextBoxColumn2});
             this.tableLayoutPanel3.SetColumnSpan(this.dataGridView1, 4);
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridView1.Location = new System.Drawing.Point(3, 75);
-            this.dataGridView1.MultiSelect = false;
+            this.dataGridView1.Location = new System.Drawing.Point(3, 103);
+            this.dataGridView1.MultiSelect = true;
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.RowHeadersWidth = 51;
             this.dataGridView1.RowTemplate.Height = 23;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(348, 177);
+            this.dataGridView1.Size = new System.Drawing.Size(348, 149);
             this.dataGridView1.TabIndex = 6;
             this.dataGridView1.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dataGridView1_CellMouseDoubleClick);
-            this.dataGridView1.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.dataGridView1_RowsRemoved);
             this.dataGridView1.Sorted += new System.EventHandler(this.dataGridView1_Sorted);
             // 
             // dataGridViewTextBoxColumn1
@@ -444,6 +458,19 @@
             this.button4.Text = "重载工程";
             this.button4.UseVisualStyleBackColor = true;
             this.button4.Click += new System.EventHandler(this.button4_Click);
+            //
+            // button_deleteCali
+            //
+            this.tableLayoutPanel3.SetColumnSpan(this.button_deleteCali, 4);
+            this.button_deleteCali.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.button_deleteCali.Location = new System.Drawing.Point(0, 72);
+            this.button_deleteCali.Margin = new System.Windows.Forms.Padding(0);
+            this.button_deleteCali.Name = "button_deleteCali";
+            this.button_deleteCali.Size = new System.Drawing.Size(354, 28);
+            this.button_deleteCali.TabIndex = 7;
+            this.button_deleteCali.Text = "删除所选校桩";
+            this.button_deleteCali.UseVisualStyleBackColor = true;
+            this.button_deleteCali.Click += new System.EventHandler(this.button_deleteCali_Click);
             // 
             // 采集打标列表
             // 
@@ -482,6 +509,7 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button button_add;
+        private System.Windows.Forms.Button button_deleteMark;
         private System.Windows.Forms.TextBox tbox_mark;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.TextBox tbox_dmi;
@@ -500,6 +528,7 @@
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button button_deleteCali;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.ComboBox comboBox1;
     }

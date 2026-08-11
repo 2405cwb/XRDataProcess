@@ -6116,6 +6116,11 @@ namespace XRDataProcess
                 return false;
             }
 
+            // 与GenerateIRI_NEW保持相同的有效终点。LP按道路标识桩号输出，
+            // 不能把工程总里程中多出的采样点带入LP原始IRI，否则末段目标值
+            // 会与软件IRI及实际导出的LP分别对应不同长度。
+            fileLen = GetEffectiveIriRawLength(prjinfo, fileLen);
+
             // 步骤1: 模拟LoadData读取原始数据（oridata + 插值异常点）
             double[] oridata = new double[fileLen];
             double[] toridata = new double[fileLen];  // 模拟toridata (raw拷贝，用于滤波源)
@@ -6219,58 +6224,34 @@ namespace XRDataProcess
                 }
             }
 
-            if (File.Exists(speedSavefname) && kparms != null)
+            if (File.Exists(speedSavefname) && kparms != null && bparms != null && parmnum > 0)
             {
-                // 读取速度文件
-                string[] sppedTexts = File.ReadAllLines(speedSavefname);
-                double[] speedValues = new double[sppedTexts.Length];
-                for (int i = 0; i < sppedTexts.Length; i++)
+                // LP K、B等效修正试验：
+                // 1. 先由当前0.1m纵断面计算未修正IRI；
+                // 2. 按每10m速度选择同一档K、B，得到目标IRI = rawIRI * K + B；
+                // 3. 只缩放该10m相对首尾基准线的高程起伏，不缩放绝对高程；
+                // 4. 将修正后的整条LP重新计算IRI，并输出误差报告。
+                // 这是一次修正试验，不假定一次后必然满足5%，报告用于判断实际效果。
+                string[] speedTexts = File.ReadAllLines(speedSavefname);
+                double[] speedValues = new double[speedTexts.Length];
+                for (int i = 0; i < speedTexts.Length; i++)
                 {
-                    string[] parts = sppedTexts[i].Split(' ');
-                    if (parts.Length == 2)
+                    string[] parts = speedTexts[i].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length >= 2)
                     {
-                        speedValues[i] = double.Parse(parts[1]);
+                        double.TryParse(parts[1], out speedValues[i]);
                     }
                 }
 
-                double[] iriDataSpped = new double[val.Length];
-                double oldSpeedVal = 0;
-
-
-                for (int i = 0; i < val.Length; i++)
-                {
-                    //int split = (int)(10.0 / disval);
-                    //int sppedIdx = i / split;
-                    //double speedval = 0;
-                    //if (sppedIdx < speedValues.Length)
-                    //{
-                    //    speedval = speedValues[sppedIdx];
-                    //}
-                    //else
-                    //{
-                    //    speedval = oldSpeedVal;
-                    //}
-
-                    //oldSpeedVal = speedval;
-
-                    // double kparm = kparms[parmnum - 1];
-                    //double bparm = bparms[parmnum - 1];
-                    //for (int pi = 0; pi < parmnum; ++pi)
-                    //{
-                    //    if (speedval <= speedparms[pi])
-                    //    {
-                    //        kparm = kparms[pi];
-                    //        bparm = bparms[pi];
-                    //        break;
-                    //    }
-                    //}
-                    double kparm = 1;
-                    kparm = kparms.Average();
-
-                  //  kparm = 1;
-                    iriDataSpped[i] = val[i] * kparm;
-                }
-                val = iriDataSpped;
+                ApplyLpKbEquivalentCorrectionTest(
+                    prjdir,
+                    side,
+                    disval,
+                    speedValues,
+                    speedparms,
+                    kparms,
+                    bparms,
+                    ref val);
             }
 
 
@@ -6286,6 +6267,612 @@ namespace XRDataProcess
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// 返回与国检LP道路标识范围一致的0.05m原始平整度有效点数。
+        /// </summary>
+        private static int GetEffectiveIriRawLength(ProjectInfo prjinfo, int sourceLength)
+        {
+            if (prjinfo == null || sourceLength <= 0)
+            {
+                return Math.Max(0, sourceLength);
+            }
+
+            int effectiveLength = prjinfo._EndDmi;
+            int markedRoadLength = Math.Abs(prjinfo._EndMile - prjinfo._StartMile);
+            if (markedRoadLength > 0)
+            {
+                effectiveLength = Math.Min(effectiveLength, markedRoadLength);
+            }
+
+            if (effectiveLength <= 0)
+            {
+                return sourceLength;
+            }
+
+            int maxRawLength = (int)Math.Round(effectiveLength / 0.05);
+            return Math.Min(sourceLength, Math.Max(1, maxRawLength));
+        }
+
+        /// <summary>
+        /// LP K、B等效修正的一次试验。
+        /// 结果报告写入 IRIMTD\DAQ{side}\LP_KB_Test_Result.txt。
+        /// </summary>
+        private static void ApplyLpKbEquivalentCorrectionTest(
+            DirectoryInfo prjdir,
+            int side,
+            double sampleInterval,
+            double[] speedValues,
+            double[] speedParms,
+            double[] kParms,
+            double[] bParms,
+            ref double[] profile)
+        {
+            if (profile == null || profile.Length < 4 ||
+                Math.Abs(sampleInterval - 0.1) > 0.000001 ||
+                speedParms == null || kParms == null || bParms == null ||
+                speedParms.Length == 0 ||
+                speedParms.Length != kParms.Length ||
+                kParms.Length != bParms.Length)
+            {
+                return;
+            }
+
+            const double IriSectionLength = 10.0;
+            const double MinRawIri = 0.000001;
+            const double MinScale = 0.10;
+            const double MaxScale = 5.00;
+            const double TargetRelativeError = 0.01;
+            const int MaxCorrectionIterations = 5;
+
+            int pointsPerSection = Convert.ToInt32(IriSectionLength / sampleInterval);
+            double[] originalProfile = (double[])profile.Clone();
+            List<double> rawIriValues = CalculateLpIri10M(originalProfile, sampleInterval);
+            int sectionCount = Math.Min(
+                rawIriValues.Count,
+                (profile.Length + pointsPerSection - 1) / pointsPerSection);
+
+            if (sectionCount == 0)
+            {
+                return;
+            }
+
+            double[] sectionSpeeds = new double[sectionCount];
+            double[] sectionK = new double[sectionCount];
+            double[] sectionB = new double[sectionCount];
+            double[] sectionScale = new double[sectionCount];
+            double[] targetIriValues = new double[sectionCount];
+            bool[] scaleClamped = new bool[sectionCount];
+
+            double lastSpeed = speedValues != null && speedValues.Length > 0 ? speedValues[0] : 0.0;
+            for (int section = 0; section < sectionCount; section++)
+            {
+                if (speedValues != null && section < speedValues.Length)
+                {
+                    lastSpeed = speedValues[section];
+                }
+
+                sectionSpeeds[section] = lastSpeed;
+                SelectLpKbBySpeed(
+                    lastSpeed,
+                    speedParms,
+                    kParms,
+                    bParms,
+                    out sectionK[section],
+                    out sectionB[section]);
+
+                double rawIri = rawIriValues[section];
+                double targetIri = Math.Max(0.0, rawIri * sectionK[section] + sectionB[section]);
+                targetIriValues[section] = targetIri;
+
+                double scale = rawIri > MinRawIri
+                    ? targetIri / rawIri
+                    : sectionK[section];
+
+                double limitedScale = Math.Max(MinScale, Math.Min(MaxScale, scale));
+                scaleClamped[section] = Math.Abs(limitedScale - scale) > 0.000001;
+                sectionScale[section] = limitedScale;
+            }
+
+            double[] correctedProfile = BuildCorrectedLpProfile(
+                originalProfile,
+                sectionScale,
+                pointsPerSection);
+            RoundLpProfile(correctedProfile);
+            List<double> correctedIriValues = CalculateLpIri10M(correctedProfile, sampleInterval);
+
+            // 在第一轮等效缩放的基础上继续压低误差。
+            // 每个候选轮次都要重建整条LP并连续重算IRI；只有整线最大误差确实下降才接受，
+            // 否则减半步长。这样不会假定 scale *= target / actual 必然收敛。
+            int acceptedCorrectionIterations = 0;
+            double currentMaxError = CalculateMaxLpIriError(targetIriValues, correctedIriValues);
+            while (acceptedCorrectionIterations < MaxCorrectionIterations &&
+                   currentMaxError > TargetRelativeError)
+            {
+                bool accepted = false;
+                double step = 1.0;
+
+                while (step >= 0.03125)
+                {
+                    double[] candidateScale = (double[])sectionScale.Clone();
+                    bool[] candidateScaleClamped = (bool[])scaleClamped.Clone();
+                    int candidateCount = Math.Min(
+                        sectionCount,
+                        Math.Min(targetIriValues.Length, correctedIriValues.Count));
+
+                    for (int section = 0; section < candidateCount; section++)
+                    {
+                        double actualIri = correctedIriValues[section];
+                        double targetIri = targetIriValues[section];
+                        if (actualIri <= MinRawIri || targetIri <= MinRawIri)
+                        {
+                            continue;
+                        }
+
+                        double correctionRatio = targetIri / actualIri;
+                        double proposedScale =
+                            sectionScale[section] * Math.Pow(correctionRatio, step);
+                        double limitedScale =
+                            Math.Max(MinScale, Math.Min(MaxScale, proposedScale));
+                        candidateScaleClamped[section] =
+                            candidateScaleClamped[section] ||
+                            Math.Abs(limitedScale - proposedScale) > 0.000001;
+                        candidateScale[section] = limitedScale;
+                    }
+
+                    double[] candidateProfile = BuildCorrectedLpProfile(
+                        originalProfile,
+                        candidateScale,
+                        pointsPerSection);
+                    RoundLpProfile(candidateProfile);
+                    List<double> candidateIriValues =
+                        CalculateLpIri10M(candidateProfile, sampleInterval);
+                    double candidateMaxError =
+                        CalculateMaxLpIriError(targetIriValues, candidateIriValues);
+
+                    if (candidateMaxError + 0.000000001 < currentMaxError)
+                    {
+                        sectionScale = candidateScale;
+                        scaleClamped = candidateScaleClamped;
+                        correctedProfile = candidateProfile;
+                        correctedIriValues = candidateIriValues;
+                        currentMaxError = candidateMaxError;
+                        acceptedCorrectionIterations++;
+                        accepted = true;
+                        break;
+                    }
+
+                    step *= 0.5;
+                }
+
+                if (!accepted)
+                {
+                    break;
+                }
+            }
+
+            // 全局同步更新在相邻10m段需要相反调整方向时可能停滞。
+            // 此时改为只尝试当前超限段及其前一段的倍率，仍然每次重建整条LP、
+            // 连续重算IRI，并且仅接受整线目标函数确有改善的候选。
+            int localAcceptedCorrectionCount = ImproveLpIriByLocalSearch(
+                originalProfile,
+                pointsPerSection,
+                targetIriValues,
+                MinRawIri,
+                MinScale,
+                MaxScale,
+                TargetRelativeError,
+                ref sectionScale,
+                ref scaleClamped,
+                ref correctedProfile,
+                ref correctedIriValues);
+            currentMaxError = CalculateMaxLpIriError(targetIriValues, correctedIriValues);
+
+            List<string> reportLines = new List<string>
+            {
+                string.Format(
+                    "段号\t速度(km/h)\tK\tB\t原始IRI\t目标IRI\tLP重算IRI\t相对误差(%)\t起伏倍率\t倍率限幅\t全局修正轮数\t局部修正次数\t是否满足{0:F1}%",
+                    TargetRelativeError * 100.0)
+            };
+
+            int reportCount = Math.Min(sectionCount, correctedIriValues.Count);
+            for (int section = 0; section < reportCount; section++)
+            {
+                double targetIri = targetIriValues[section];
+                double correctedIri = correctedIriValues[section];
+                double relativeError = targetIri > 0.000001
+                    ? Math.Abs(correctedIri - targetIri) / targetIri
+                    : Math.Abs(correctedIri - targetIri);
+                bool passed = targetIri > 0.000001
+                    ? relativeError <= TargetRelativeError
+                    : relativeError <= 0.01;
+
+                reportLines.Add(string.Format(
+                    "{0}\t{1:F3}\t{2:F9}\t{3:F9}\t{4:F6}\t{5:F6}\t{6:F6}\t{7:F3}\t{8:F6}\t{9}\t{10}\t{11}\t{12}",
+                    section + 1,
+                    sectionSpeeds[section],
+                    sectionK[section],
+                    sectionB[section],
+                    rawIriValues[section],
+                    targetIri,
+                    correctedIri,
+                    relativeError * 100.0,
+                    sectionScale[section],
+                    scaleClamped[section] ? "是" : "否",
+                    1 + acceptedCorrectionIterations,
+                    localAcceptedCorrectionCount,
+                    passed ? "是" : "否"));
+            }
+
+            string reportPath = Path.Combine(
+                prjdir.FullName,
+                "IRIMTD",
+                "DAQ" + side,
+                "LP_KB_Test_Result.txt");
+            File.WriteAllLines(reportPath, reportLines, Encoding.UTF8);
+            profile = correctedProfile;
+        }
+
+        /// <summary>
+        /// 使用每10m倍率缩放相对首尾基准线的高程起伏。
+        /// 每轮都从原始纵断面重建，避免把倍率重复叠加到上一轮结果上。
+        /// </summary>
+        private static double[] BuildCorrectedLpProfile(
+            double[] originalProfile,
+            double[] sectionScale,
+            int pointsPerSection)
+        {
+            double[] correctedProfile = (double[])originalProfile.Clone();
+            for (int section = 0; section < sectionScale.Length; section++)
+            {
+                int startIndex = section * pointsPerSection;
+                int endExclusive = Math.Min(startIndex + pointsPerSection, correctedProfile.Length);
+                int lastIndex = endExclusive - 1;
+                if (startIndex >= lastIndex)
+                {
+                    continue;
+                }
+
+                double startHeight = originalProfile[startIndex];
+                double endHeight = originalProfile[lastIndex];
+                double indexLength = lastIndex - startIndex;
+
+                for (int i = startIndex; i < endExclusive; i++)
+                {
+                    double positionRatio = (i - startIndex) / indexLength;
+                    double baseline =
+                        startHeight + (endHeight - startHeight) * positionRatio;
+                    double fluctuation = originalProfile[i] - baseline;
+                    correctedProfile[i] =
+                        baseline + sectionScale[section] * fluctuation;
+                }
+            }
+
+            return correctedProfile;
+        }
+
+        /// <summary>
+        /// 按最终LP的实际小数位数舍入，确保内部验证对应客户读取到的文件。
+        /// </summary>
+        private static void RoundLpProfile(double[] profile)
+        {
+            for (int i = 0; i < profile.Length; i++)
+            {
+                profile[i] = Math.Round(profile[i], _Setting.sheetRoundingOffNum);
+            }
+        }
+
+        /// <summary>
+        /// 当整线同步缩放不能继续降低最大误差时，对超限段进行局部坐标搜索。
+        /// 由于车辆状态从前段传入当前段，同时尝试当前段及前一段作为控制段。
+        /// </summary>
+        private static int ImproveLpIriByLocalSearch(
+            double[] originalProfile,
+            int pointsPerSection,
+            double[] targetIriValues,
+            double minRawIri,
+            double minScale,
+            double maxScale,
+            double targetRelativeError,
+            ref double[] sectionScale,
+            ref bool[] scaleClamped,
+            ref double[] correctedProfile,
+            ref List<double> correctedIriValues)
+        {
+            const int MaxLocalSearchPasses = 3;
+            const int MaxLocalAcceptedCorrections = 24;
+            int acceptedCount = 0;
+
+            for (int pass = 0;
+                 pass < MaxLocalSearchPasses && acceptedCount < MaxLocalAcceptedCorrections;
+                 pass++)
+            {
+                bool improvedInPass = false;
+
+                while (acceptedCount < MaxLocalAcceptedCorrections)
+                {
+                    int compareCount = Math.Min(targetIriValues.Length, correctedIriValues.Count);
+                    List<double> currentIriValues = correctedIriValues;
+                    List<int> targetSections = Enumerable.Range(0, compareCount)
+                        .Where(index => CalculateLpIriRelativeError(
+                            targetIriValues[index], currentIriValues[index]) > targetRelativeError)
+                        .OrderByDescending(index => CalculateLpIriRelativeError(
+                            targetIriValues[index], currentIriValues[index]))
+                        .ToList();
+
+                    if (targetSections.Count == 0)
+                    {
+                        return acceptedCount;
+                    }
+
+                    bool accepted = false;
+                    foreach (int targetSection in targetSections)
+                    {
+                        double actualIri = correctedIriValues[targetSection];
+                        double targetIri = targetIriValues[targetSection];
+                        if (actualIri <= minRawIri || targetIri <= minRawIri)
+                        {
+                            continue;
+                        }
+
+                        // 当前段控制本段起伏；前一段控制进入本段的车辆状态。
+                        for (int controlOffset = 0; controlOffset <= 1; controlOffset++)
+                        {
+                            int controlSection = targetSection - controlOffset;
+                            if (controlSection < 0 || controlSection >= sectionScale.Length)
+                            {
+                                continue;
+                            }
+
+                            double step = 1.0;
+                            while (step >= 0.03125)
+                            {
+                                double[] candidateScale = (double[])sectionScale.Clone();
+                                bool[] candidateScaleClamped = (bool[])scaleClamped.Clone();
+                                double correctionRatio = targetIri / actualIri;
+                                double proposedScale =
+                                    sectionScale[controlSection] * Math.Pow(correctionRatio, step);
+                                double limitedScale = Math.Max(
+                                    minScale,
+                                    Math.Min(maxScale, proposedScale));
+                                candidateScale[controlSection] = limitedScale;
+                                candidateScaleClamped[controlSection] =
+                                    candidateScaleClamped[controlSection] ||
+                                    Math.Abs(limitedScale - proposedScale) > 0.000001;
+
+                                double[] candidateProfile = BuildCorrectedLpProfile(
+                                    originalProfile,
+                                    candidateScale,
+                                    pointsPerSection);
+                                RoundLpProfile(candidateProfile);
+                                List<double> candidateIriValues = CalculateLpIri10M(
+                                    candidateProfile,
+                                    0.1);
+
+                                if (IsLpIriObjectiveBetter(
+                                    targetIriValues,
+                                    candidateIriValues,
+                                    correctedIriValues,
+                                    targetRelativeError))
+                                {
+                                    sectionScale = candidateScale;
+                                    scaleClamped = candidateScaleClamped;
+                                    correctedProfile = candidateProfile;
+                                    correctedIriValues = candidateIriValues;
+                                    acceptedCount++;
+                                    accepted = true;
+                                    improvedInPass = true;
+                                    break;
+                                }
+
+                                step *= 0.5;
+                            }
+
+                            if (accepted)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (accepted)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (!accepted)
+                    {
+                        break;
+                    }
+                }
+
+                if (!improvedInPass)
+                {
+                    break;
+                }
+            }
+
+            return acceptedCount;
+        }
+
+        /// <summary>
+        /// 比较候选LP与当前LP的整线目标：优先降低最大误差；最大误差持平时，
+        /// 再降低超限段数量和总误差，防止局部修正引入新的更大超限。
+        /// </summary>
+        private static bool IsLpIriObjectiveBetter(
+            double[] targetIriValues,
+            List<double> candidateIriValues,
+            List<double> currentIriValues,
+            double targetRelativeError)
+        {
+            int count = Math.Min(
+                targetIriValues.Length,
+                Math.Min(candidateIriValues.Count, currentIriValues.Count));
+            int candidateOverLimitCount = 0;
+            int currentOverLimitCount = 0;
+            double candidateMaxError = 0.0;
+            double currentMaxError = 0.0;
+            double candidateErrorSum = 0.0;
+            double currentErrorSum = 0.0;
+
+            for (int i = 0; i < count; i++)
+            {
+                double candidateError = CalculateLpIriRelativeError(
+                    targetIriValues[i], candidateIriValues[i]);
+                double currentError = CalculateLpIriRelativeError(
+                    targetIriValues[i], currentIriValues[i]);
+                candidateMaxError = Math.Max(candidateMaxError, candidateError);
+                currentMaxError = Math.Max(currentMaxError, currentError);
+                candidateErrorSum += candidateError;
+                currentErrorSum += currentError;
+                if (candidateError > targetRelativeError)
+                {
+                    candidateOverLimitCount++;
+                }
+                if (currentError > targetRelativeError)
+                {
+                    currentOverLimitCount++;
+                }
+            }
+
+            const double ErrorEpsilon = 0.000000001;
+            if (candidateMaxError < currentMaxError - ErrorEpsilon)
+            {
+                return true;
+            }
+            if (candidateMaxError > currentMaxError + ErrorEpsilon)
+            {
+                return false;
+            }
+            if (candidateOverLimitCount < currentOverLimitCount)
+            {
+                return true;
+            }
+            if (candidateOverLimitCount > currentOverLimitCount)
+            {
+                return false;
+            }
+
+            return candidateErrorSum < currentErrorSum - ErrorEpsilon;
+        }
+
+        private static double CalculateLpIriRelativeError(double targetIri, double actualIri)
+        {
+            return targetIri > 0.000001
+                ? Math.Abs(actualIri - targetIri) / targetIri
+                : Math.Abs(actualIri - targetIri);
+        }
+
+        /// <summary>
+        /// 返回整条路线各10m区间中的最大误差。
+        /// 正目标值使用相对误差；接近0的目标值使用绝对误差。
+        /// </summary>
+        private static double CalculateMaxLpIriError(
+            double[] targetIriValues,
+            List<double> actualIriValues)
+        {
+            int count = Math.Min(targetIriValues.Length, actualIriValues.Count);
+            double maxError = 0.0;
+            for (int i = 0; i < count; i++)
+            {
+                double targetIri = targetIriValues[i];
+                double actualIri = actualIriValues[i];
+                double error = targetIri > 0.000001
+                    ? Math.Abs(actualIri - targetIri) / targetIri
+                    : Math.Abs(actualIri - targetIri);
+                maxError = Math.Max(maxError, error);
+            }
+
+            return maxError;
+        }
+
+        /// <summary>
+        /// 按速度选择同一档位的K、B。
+        /// </summary>
+        private static void SelectLpKbBySpeed(
+            double speed,
+            double[] speedParms,
+            double[] kParms,
+            double[] bParms,
+            out double k,
+            out double b)
+        {
+            int selectedIndex = speedParms.Length - 1;
+            for (int i = 0; i < speedParms.Length; i++)
+            {
+                if (speed <= speedParms[i])
+                {
+                    selectedIndex = i;
+                    break;
+                }
+            }
+
+            k = kParms[selectedIndex];
+            b = bParms[selectedIndex];
+        }
+
+        /// <summary>
+        /// 使用GenerateIRI_NEW相同的0.1m四分之一车状态矩阵，
+        /// 连续计算整条纵断面，并按10m输出IRI。车辆状态不会在10m边界清零。
+        /// </summary>
+        private static List<double> CalculateLpIri10M(double[] profile, double sampleInterval)
+        {
+            List<double> results = new List<double>();
+            if (profile == null || profile.Length < 4 ||
+                Math.Abs(sampleInterval - 0.1) > 0.000001)
+            {
+                return results;
+            }
+
+            double[] szu =
+            {
+                0.9994014, 0.004442351, 0.0002188854, 5.72179E-05,
+                -0.2570548, 0.975036, 0.007966216, 0.02458427,
+                0.003960378, 0.0003814527, 0.9548048, 0.004055587,
+                1.687312, 0.1638951, -19.34264, 0.7948701
+            };
+            double[] pzu = { 0.0003793992, 0.2490886, 0.04123478, 17.65532 };
+
+            int pointsPerSection = Convert.ToInt32(10.0 / sampleInterval);
+            int initializeIndex = Math.Min(110, profile.Length - 1);
+            double initialSlope = (profile[initializeIndex] - profile[0]) / 11.0;
+            double[] oldZsu = { initialSlope, 0.0, initialSlope, 0.0 };
+            double[] zsu = new double[4];
+            double iriSum = 0.0;
+            int count = 0;
+
+            for (int i = 3; i < profile.Length; i++)
+            {
+                if (i % pointsPerSection == 0)
+                {
+                    results.Add(count > 0 ? iriSum / count : 0.0);
+                    iriSum = 0.0;
+                    count = 0;
+                }
+
+                double ysu = (profile[i] - profile[i - 3]) / 0.3;
+                for (int row = 0; row < 4; row++)
+                {
+                    double value = pzu[row] * ysu;
+                    for (int column = 0; column < 4; column++)
+                    {
+                        value += szu[row * 4 + column] * oldZsu[column];
+                    }
+                    zsu[row] = value;
+                }
+
+                iriSum += Math.Abs(zsu[0] - zsu[2]);
+                count++;
+                Array.Copy(zsu, oldZsu, 4);
+            }
+
+            if (count > 0)
+            {
+                results.Add(iriSum / count);
+            }
+
+            return results;
         }
 
         /// <summary>

@@ -324,6 +324,13 @@ namespace XRDataProcess
                         Array.Copy(tmpidx, showidxs, tmpidx.Length);
                     }
                     break;
+                case 14:
+                    {
+                        int[] tmpidx = { 0 };
+                        showidxs = new int[tmpidx.Length];
+                        Array.Copy(tmpidx, showidxs, tmpidx.Length);
+                    }
+                    break;
                 default: break;
             }
             if (showidxs != null && showidxs.Length > 0)
@@ -375,6 +382,14 @@ namespace XRDataProcess
 
                                     }
                                 }
+                                if (ExcelType == 14)
+                                {
+                                    if (idx == 0)
+                                    {
+                                        cbox.Text = "公里指标报表"; 
+                                    }
+
+                                }
 
 
                             }
@@ -401,10 +416,20 @@ namespace XRDataProcess
 
                                         }
                                     }
+                                    else if (ExcelType == 14)
+                                    {
+                                        if (idx == 0)
+                                        {
+                                            cbox.Visible = true;
+
+                                        }
+                                      
+                                    }
                                     else if (ExcelType != 4)
                                     {
                                         cbox.Visible = true;
                                     }
+                                    
                                 }
                                
                                 else

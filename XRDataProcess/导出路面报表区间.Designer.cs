@@ -205,7 +205,7 @@
             this.comboBox_DetectYear.Size = new System.Drawing.Size(363, 26);
             this.comboBox_DetectYear.TabIndex = 36;
             this.comboBox_DetectYear.Tag = "-1";
-            this.comboBox_DetectYear.Text = "2021";
+            this.comboBox_DetectYear.Text = "2026";
             // 
             // label2
             // 

@@ -1460,7 +1460,17 @@ namespace XRDataProcess
             var (oridata, toridata, oritime, sdata, len) = LoadData(fpath);
 
 
-            int maxRawLen = (int)Math.Round(projectInfo._EndDmi / 0.05);
+            // 国检LP按道路标识桩号范围输出；IRI也必须使用同一有效长度。
+            // 某些工程的“工程总里程数”会比道路标识终点长几米，若仍按_EndDmi
+            // 计算，则最后一个非完整10m段会包含LP中不存在的路面，导致客户复算无法对应。
+            int effectiveLength = projectInfo._EndDmi;
+            int markedRoadLength = Math.Abs(projectInfo._EndMile - projectInfo._StartMile);
+            if (markedRoadLength > 0)
+            {
+                effectiveLength = Math.Min(effectiveLength, markedRoadLength);
+            }
+
+            int maxRawLen = (int)Math.Round(effectiveLength / 0.05);
             len = Math.Min(len, maxRawLen);
             oridata = oridata.Take(len).ToArray();
             toridata = toridata.Take(len).ToArray();
@@ -1472,7 +1482,7 @@ namespace XRDataProcess
             {
                 oridata[i] = (toridata[i - 2] + toridata[i - 1] + toridata[i] + toridata[i + 1] + toridata[i + 2]) / 5;
             }
-            string saveSpeedfname = fpath.Replace(fname, string.Format("Speed_{0}m.txt", vallen));
+                string saveSpeedfname = fpath.Replace(fname, string.Format("Speed_{0}m.txt", vallen));
 
             // 步骤3: 抽样到指定间隔（DeltLen）
             int qplusenum = Convert.ToInt32(DeltLen / 0.05); // 每0.1m抽样点数（0.05m原始间隔）
@@ -1492,9 +1502,6 @@ namespace XRDataProcess
             //}
             //iridata = testDatas.ToArray();
 
-
-
-
             //先计算速度文件
             // 提前计算并输出速度文件
             string speedSavefname = fpath.Replace(fname, string.Format("Speed_{0}m.txt", vallen));
@@ -1502,7 +1509,8 @@ namespace XRDataProcess
             StreamWriter swspeed = new StreamWriter(fwspeed);
 
             int plusenum = Convert.ToInt32(vallen / DeltLen); // 每段点数（e.g., 10m / 0.1m = 100）
-            int start_i = (DeltLen == 0.1) ? 3 : 1; // 0.1m时从i=3开始以支持尾随YSU
+            // 坡度统一采用相邻采样点差分，因此 0.1m 和 0.25m 都从 i=1 开始。
+            int start_i = 1;
             double stime = ParseTime(iritime[0], side);
             int iricnt = 0;
 
@@ -1620,25 +1628,6 @@ namespace XRDataProcess
 
             for (int i = start_i; i < len; ++i)
             {
-                // 每段结束时处理IRI
-                if (i % plusenum == 0)
-                {
-                    double etime = ParseTime(iritime[i], side);
-                    double speedval = (etime - stime) > 0 ? (vallen / (etime - stime) * 3.6) : 0;
-                    double irival = count > 0 ? irisum / count : 0;
-
-                    // 应用IRI修正（加速度或速度因子）
-                    irival = ApplyCorrection(irival, datasrc, speedval, isParmFile, speedparms, kparms, bparms, parmnum);
-
-                    // 写入输出
-                    sw.WriteLine(string.Format("{0} {1}", ++iricnt, irival), Encoding.UTF8);
-
-                    // 重置
-                    irisum = 0;
-                    count = 0;
-                    stime = etime;
-                }
-
                 // 计算YSU（输入坡度）
                 double YSU = ComputeYSU(iridata, i, DeltLen);
 
@@ -1651,6 +1640,25 @@ namespace XRDataProcess
 
                 // 更新oldZSU
                 Array.Copy(ZSU, oldZSU, 4);
+
+                // 本采样点的状态已累计完成后，再输出完整的 IRI 段。
+                // 这样每个完整段恰好包含 plusenum 个状态步，边界点归入前一段。
+                if (count == plusenum)
+                {
+                    double etime = ParseTime(iritime[i], side);
+                    double speedval = (etime - stime) > 0 ? (vallen / (etime - stime) * 3.6) : 0;
+                    double irival = irisum / count;
+
+                    // 应用IRI修正（加速度或速度因子）
+                    irival = ApplyCorrection(irival, datasrc, speedval, isParmFile, speedparms, kparms, bparms, parmnum);
+
+                    // 写入输出
+                    sw.WriteLine(string.Format("{0} {1}", ++iricnt, irival), Encoding.UTF8);
+
+                    irisum = 0;
+                    count = 0;
+                    stime = etime;
+                }
             }
 
             // 步骤7: 处理最后一个不完整段
@@ -1857,14 +1865,10 @@ namespace XRDataProcess
         /// </summary>
         private static double ComputeYSU(double[] iridata, int i, double DeltLen)
         {
-            if (DeltLen == 0.1)
-            {
-                return (iridata[i] - iridata[i - 3]) / 0.3;
-            }
-            else
-            {
-                return (iridata[i] - iridata[i - 1]) / DeltLen;
-            }
+            // 原 0.1m 算法（保留用于复核）：
+            // return (iridata[i] - iridata[i - 3]) / 0.3;
+            // 该式是 0.3m 跨距坡度，不能与 0.1m 的 SZU100/PZU100 状态矩阵配套使用。
+            return (iridata[i] - iridata[i - 1]) / DeltLen;
         }
 
         /// <summary>
@@ -1895,7 +1899,14 @@ namespace XRDataProcess
                 return irival;
             }
             double kparm = kparms[parmnum - 1];
+            //kparms[1] = 1.5725;
+            //kparms[2] = 1.4214;
+            //kparms[3] = 1.359;
             double bparm = bparms[parmnum - 1];
+
+           //bparms[1] = 0.3974;
+           //bparms[2] = -0.4278;
+           //bparms[3] = 0.5133;
             for (int pi = 0; pi < parmnum; ++pi)
             {
                 if (speedval <= speedparms[pi])
@@ -1905,11 +1916,13 @@ namespace XRDataProcess
                     break;
                 }
             }
-            kparm = kparms.Average();
-            irival = irival * kparm;
-             //irival = irival * kparm + bparm;
+            double arvKparm = kparms.Average();
+            double  tempiri = irival * arvKparm;
+
+
+            irival = irival * kparm + bparm;
              
-            return irival;
+            return tempiri;
         }
 
 

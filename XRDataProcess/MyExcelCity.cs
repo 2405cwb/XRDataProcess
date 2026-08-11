@@ -4051,6 +4051,179 @@ namespace XRDataProcess
                 destrange.Value2 = GPSEndObj;
             }
         }
+
+
+        #region 四川
+        public static void OutputChongQingSumExcel(MSExcel.Application excelApp, string path, ProjectInfo prjinfo, DirectoryInfo prjdir, int disval)
+        {
+            string srcxls = string.Format(@"{0}\报表模板\城镇道路\四川定制\重庆公里指标导入模板.xlsx",
+                System.Windows.Forms.Application.StartupPath, disval);
+            string Destxls = string.Format(@"{0}\{1}_公里指标_{2}m.xlsx", path, prjdir.Name, disval);
+            MSExcel.Workbook _Workbook = excelApp.Workbooks.Open(srcxls, Type.Missing,
+                true, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+            MSExcel.Worksheet _Worksheet = null;
+            _Workbook.SaveAs(Destxls, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                MSExcel.XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+            _Worksheet = _Workbook.Sheets["每公里指标 (病害)"] as MSExcel.Worksheet;
+            WriteAll2Xls_ChongQing(_Worksheet, prjinfo, prjdir, _RoadPart, _RoadDisList,
+               _LIRIMeanVal, _RIRIMeanVal, _LRutMeanVal, _RRutMeanVal, _SRutMeanVal, _LMTDMeanVal, _RMTDMeanVal, _CMTDMeanVal, null, null, disval, _GPSInfo);
+            _Workbook.Save();
+            _Workbook.Close(Type.Missing, Type.Missing, Type.Missing);
+            int generation = System.GC.GetGeneration(excelApp);
+            System.GC.Collect(generation);//垃圾回收
+            System.GC.WaitForPendingFinalizers();
+        }
+
+        private static void WriteAll2Xls_ChongQing(MSExcel.Worksheet worksheet, ProjectInfo prjinfo, DirectoryInfo prjdir, List<MilePart> roadpart,
+ Disease[] arrdis, double[] LIRIVal, double[] RIRIVal, double[] LRutVal, double[] RRutVal, double[] SRutVal,
+ double[] LMTDVal, double[] RMTDVal, double[] MMTDVal, int[][] PBVal, double[] deltahVal, int disval, ExcelGPS[] gpsInfo)
+        {
+            bool shangxing = prjinfo._Direction == 1 ? true : false;
+            //检查区间长度进行处理
+            int len = roadpart.Count - 1, dlen = arrdis.Length;
+            double irival = 0, tpcival = 0;
+
+            object[,] mxlist = new object[len,49];
+            double[] drvals = new double[len];
+
+
+            string errlog = prjdir.FullName + "\\errlog.txt";
+
+            int typeidx = 0;
+            bool res = false;
+
+            for (int i = 0; i < len; i++)//i区间索引，j病害索引
+            {
+                int smile = roadpart[i].mile;
+                int emile = roadpart[i + 1].mile;
+
+              
+                int rowCount = 0;
+                int milelength = Math.Abs(smile - emile);
+                mxlist[i, rowCount++] = prjinfo._AreaCode;
+                mxlist[i, rowCount++] = prjinfo._RoadCodePart;
+                mxlist[i, rowCount++] = prjinfo._RoadName;
+                mxlist[i, rowCount++] = prjinfo._City;
+                mxlist[i, rowCount++] = prjinfo._District;
+
+                double s1 = roadpart[i].mile / 1000.0;
+                double s2 = roadpart[i + 1].mile / 1000.0;
+                double smile1 = Math.Round(s1, 3);
+                double emile1 = Math.Round(s2, 3);
+                double milelength1 = Math.Round(Math.Abs(s1 - s2), 3);
+                if (prjinfo._Direction > 0)
+                {
+                    mxlist[i, rowCount++] = smile1;
+                    mxlist[i, rowCount++] = emile1;
+                }
+                else
+                {
+                    mxlist[i, rowCount++] = emile1;
+                    mxlist[i, rowCount++] = smile1;
+                }
+                mxlist[i, rowCount++] = milelength1;
+                mxlist[i, rowCount++] = roadpart[i].degreestr;
+                mxlist[i, rowCount++] = roadpart[i].roadtype == 0 ? "沥青" : roadpart[i].roadtype == 1 ? "水泥" : "砂石";
+                mxlist[i, rowCount++] = prjinfo._Direction == 1 ? "上行" : "下行";
+
+                //破损面积（平方米）
+                mxlist[i, rowCount++] = String.Format("=sum(V{0}:AV{0})", i + 3);
+
+                //检测面积（平方米）
+                mxlist[i, rowCount++] = _RoadConfig.DetectWidth * milelength;
+
+
+                //统计位于这个区域的病害
+                RoadDiseaseTypes.Clear();
+                for (int d = 0; d < arrdis.Length; d++)
+                {
+                    if (d < dlen && ((prjinfo._Direction > 0 && arrdis[d].m_mile >= smile && arrdis[d].m_mile < emile)
+                      || (prjinfo._Direction < 0 && arrdis[d].m_mile <= smile && arrdis[d].m_mile > emile)))
+                    {
+                        res = RoadDiseaseTypes.DiseaseTypeDict[roadpart[i].roadtype].TryGetValue(string.Format("{0}.{1}",
+                           arrdis[d].RoadType, arrdis[d].RoadDisType), out typeidx);
+                        if (res)
+                        {
+                            RoadDiseaseTypes.roaddis[roadpart[i].roadtype][typeidx].totalarea += arrdis[d].Area;
+                        }
+                        else
+                        {
+                            string errval = string.Format("拉框病害信息：{0} 路面材质：{1}\r\n", arrdis[d].GetDisInfoStr(), GlobalExcel._RoadTypeStr[roadpart[i].roadtype]);
+                            File.AppendAllText(errlog, errval, Encoding.UTF8);
+                        }
+                    }
+                } 
+                mxlist[i, rowCount++] = "-";
+               double pcival = ComputPCI(RoadDiseaseTypes.roaddis, roadpart[i].roadtype, _RoadConfig.DetectWidth * milelength);
+                if (pcival < 0) pcival = 0;
+                
+               
+
+                mxlist[i, rowCount++] = Math.Round(pcival, 5);
+                mxlist[i,rowCount ++] = string.Format("=IF(D{0}>={1},\"A\",IF(D{0}>={2},\"B\",IF(D{0}>={3},\"C\",\"D\")))",
+                    i + 3, _PCIGrade[roadpart[i].roaddegree][0], _PCIGrade[roadpart[i].roaddegree][1], _PCIGrade[roadpart[i].roaddegree][2]);
+                irival = LIRIVal[i];
+                
+                if (prjinfo._IsDIRIMTD)
+                { 
+                    irival = Math.Round((LIRIVal[i] + RIRIVal[i]) * 0.5, 5);
+                }
+                mxlist[i, rowCount++] = String.Format("=IF({0}+{1}*{3}>=0,{0}+{1}*{3},0)", _RQIa[0], _RQIa[1], i + 4,irival);
+                mxlist[i, rowCount++] = string.Format("=IF(Q{0}>={1},\"A\",IF(Q{0}>={2},\"B\",IF(Q{0}>={3},\"C\",\"D\")))",
+                    i + 4, _RQIGrade[roadpart[i].roaddegree][0], _RQIGrade[roadpart[i].roaddegree][1], _RQIGrade[roadpart[i].roaddegree][2]);
+
+
+                //PQI 评价
+                //PQI计算公式与路面材质没关系，只和道路等级有关系，快速路和主干路，支路和次干路
+               mxlist[i, rowCount++]  = string.Format("=ROUND({1}*O{0}+{2}*{3}*Q{0},5)", i + 3, _PQIW[roadpart[i].roaddegree][0], _PQIW[roadpart[i].roaddegree][1], _PQIT);
+               mxlist[i, rowCount++] = string.Format("=IF(S{0}>={1},\"A\",IF(S{0}>={2},\"B\",IF(S{0}>={3},\"C\",\"D\")))",
+                    i + 3, _PQIGrade[roadpart[i].roaddegree][0], _PQIGrade[roadpart[i].roaddegree][1], _PQIGrade[roadpart[i].roaddegree][2]);
+
+
+                mxlist[i, rowCount++] = irival;
+
+                int roadType = roadpart[i].roadtype;
+                if (roadType == 0)
+                {
+                    for (int dis = 0; dis < RoadDiseaseTypes.roaddis[roadType].Length; dis++)
+                    {
+
+                        {
+                            mxlist[i, rowCount++] = RoadDiseaseTypes.roaddis[roadType][dis].totalarea;
+                        }
+
+                        // _Worksheet.Cells[rowCount, colcnt++] = RoadDiseaseTypes.roaddis[roadType][dis].totalarea.ToString("f2");
+                    }
+                    for (int ttt = 0; ttt < 14; ttt++)
+                    {
+                        mxlist[i, rowCount++] = "0";
+                    }
+                }
+                else
+                {
+                    for (int ttt = 0; ttt < 13; ttt++)
+                    {
+                        mxlist[i, rowCount++] = "0";
+                    }
+
+                    for (int dis = 0; dis < RoadDiseaseTypes.roaddis[roadType].Length; dis++)
+                    {
+                        mxlist[i, rowCount++] = RoadDiseaseTypes.roaddis[roadType][dis].totalarea;
+                    }
+                }
+            }
+            MSExcel.Range destrange = worksheet.get_Range(String.Format("A3:AW{0}", len + 2));
+            destrange.Value2 = mxlist;
+            GlobalExcel.SetBorderLine(destrange, 53);
+            if (_Setting.IsExcelSort)
+            {
+                MSExcel.Range sortrange = worksheet.get_Range(String.Format("F3:F{0}", len + 2));
+                GlobalExcel.ReflectionColnum(worksheet, destrange, sortrange);
+            }
+        }
+        #endregion
         #region 奥路通
         public static void OutputALTDIS(MSExcel.Application excelApp, string path, ProjectInfo prjinfo, DirectoryInfo prjdir, int disval)
         {

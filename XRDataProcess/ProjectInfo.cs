@@ -70,6 +70,12 @@ namespace XRDataProcess
         /// </summary>
         public short _RoadType;
 
+        /// <summary>
+        /// 工程文件中是否已明确指定起始路面材质。不能以 _RoadType 的默认值判断，
+        /// 因为 0 同时也是“沥青”的有效值。
+        /// </summary>
+        public bool _HasInitialRoadType { get; private set; }
+
         public string _DataDate;
 
         public string _DataTime;
@@ -92,6 +98,9 @@ namespace XRDataProcess
         private int _DmiMileLen;//里程桩号关联数组个数
         private double[,] _DmiMile;//里程桩号关联数组
         private double[] _D2MScale;//里程/桩号的系数
+        // 三维设备先启动时，采集打标使用的 DMI 可能整体早于二维工程起点。
+        // 仅在本次导入中使用，校桩和打标文件落盘后立即清零，避免重复修正。
+        private int _Pending3DStartupDmiOffset;
 
         /// <summary>
         /// 是否采集了平整度构造深度
@@ -244,11 +253,12 @@ namespace XRDataProcess
                             try
                             {
                                 _RoadType = (short)RoadDiseaseTypes.roadtypedict.Where(t => t.Key.Contains(s[1])).First().Value;
+                                _HasInitialRoadType = true;
                             }
                             catch (Exception)
                             {
-
-                                MessageBox.Show($"{_PrjPath}项目数据下projectinfo文件中路面材质列填写错误！");
+                                _HasInitialRoadType = false;
+                                MessageBox.Show($"{_PrjPath}项目数据下ProjectInfo.txt的【路面材质】填写错误，请在工程信息中重新选择后再绘制病害！");
                             }
 
 
@@ -352,6 +362,9 @@ namespace XRDataProcess
                  
                 File.WriteAllLines(tmppath, lines, Encoding.UTF8);
             }
+            // 三维设备可能比二维设备提前启动。必须在生成 Dmi2Mile.txt 前完成一次性归一化。
+            TryCorrect3DStartupDmiOffset();
+
             //补充写入工程信息
             TranDmi2Mile(); 
             tmppath = _PrjPath + @"\Setting.ini";
@@ -460,33 +473,212 @@ namespace XRDataProcess
 
         public void SavePrjInfo()
         {
-            string[] sinfo = File.ReadAllLines(_PrjPath + @"\ProjectInfo.txt", Encoding.UTF8);
-            int len = sinfo.Length;
-            for (int i = 0; i < len; i++)
+            string projectInfoFile = Path.Combine(_PrjPath, "ProjectInfo.txt");
+            string pavement = _RoadType == 0 ? "沥青" : _RoadType == 1 ? "水泥" : "砂石";
+            Dictionary<string, string> values = new Dictionary<string, string>
             {
-                string[] s = sinfo[i].Split('：');
-                switch (s[0])
+                { "省", _Province }, { "市", _City }, { "县", _District },
+                { "工程起点道路编号", _RoadCode }, { "工程起点道路名称", _RoadName },
+                { "工程起点桩号", _StartMile.ToString("K0000+000") },
+                { "行车方向", _Direction > 0 ? "上行" : "下行" }, { "公路等级", _RoadGrade },
+                { "车道", _RoadNum }, { "采集日期", _DataDate }, { "工程开始时刻", _DataTime },
+                { "检测员", _DataPerson }, { "检测天气", _DataWeather }, { "路面材质", pavement },
+                { "工程终点道路标识桩号", _EndMile.ToString("K0000+000") },
+                { "工程总里程数", _EndDmi.ToString("K0000+000") }
+            };
+            List<string> lines = File.ReadAllLines(projectInfoFile, Encoding.UTF8).ToList();
+            HashSet<string> written = new HashSet<string>();
+            for (int i = 0; i < lines.Count; i++)
+            {
+                int separator = lines[i].IndexOfAny(new[] { '：', ':' });
+                if (separator < 0) continue;
+                string key = lines[i].Substring(0, separator).Trim();
+                string value;
+                if (values.TryGetValue(key, out value))
                 {
-                    case "省": sinfo[i] = string.Format("{0}：{1}", s[0], _Province); break;
-                    case "市": sinfo[i] = string.Format("{0}：{1}", s[0], _City); break;
-                    case "县": sinfo[i] = string.Format("{0}：{1}", s[0], _District); break;
-                    case "工程起点道路编号": sinfo[i] = string.Format("{0}：{1}", s[0], _RoadCode); break;
-                    case "工程起点道路名称": sinfo[i] = string.Format("{0}：{1}", s[0], _RoadName); break;
-                    case "工程起点桩号": sinfo[i] = string.Format("{0}：{1:K0000+000}", s[0], _StartMile); break;
-                    case "行车方向": sinfo[i] = string.Format("{0}：{1}", s[0], _Direction > 0 ? "上行" : "下行"); break;
-                    case "公路等级": sinfo[i] = string.Format("{0}：{1}", s[0], _RoadGrade); break;
-                    case "车道": sinfo[i] = string.Format("{0}：{1}", s[0], _RoadNum); break;
-                    case "采集日期": sinfo[i] = string.Format("{0}：{1}", s[0], _DataDate); break;
-                    case "工程开始时刻": sinfo[i] = string.Format("{0}：{1}", s[0], _DataTime); break;
-                    case "检测员": sinfo[i] = string.Format("{0}：{1}", s[0], _DataPerson); break;
-                    case "检测天气": sinfo[i] = string.Format("{0}：{1}", s[0], _DataWeather); break;
-                    case "路面材质": sinfo[i] = string.Format("{0}：{1}", s[0], _RoadType == 0 ? "沥青" : "水泥"); break;
-                    case "工程终点道路标识桩号": sinfo[i] = string.Format("{0}：{1:K0000+000}", s[0], _EndMile); break;
-                    case "工程总里程数": sinfo[i] = string.Format("{0}：{1:K0000+000}", s[0], _EndDmi); break;
+                    lines[i] = key + "：" + (value ?? string.Empty);
+                    written.Add(key);
                 }
             }
-            File.WriteAllLines(_PrjPath + @"\ProjectInfo.txt", sinfo, Encoding.UTF8);
-            TranDmi2Mile();
+            // 旧工程可能没有这一行；保存时补齐，之后病害绘制才有明确的起始材质。
+            foreach (KeyValuePair<string, string> item in values)
+            {
+                if (!written.Contains(item.Key)) lines.Add(item.Key + "：" + (item.Value ?? string.Empty));
+            }
+            WriteAllLinesAtomically(projectInfoFile, lines);
+            _HasInitialRoadType = true;
+            TranDmi2Mile(); // 同步 Dmi2Mile.txt 以及打标文件中由 DMI 推导出的桩号。
+        }
+
+        private static void WriteAllLinesAtomically(string path, IEnumerable<string> lines)
+        {
+            string temporaryPath = path + ".tmp";
+            File.WriteAllLines(temporaryPath, lines, new UTF8Encoding(false));
+            if (File.Exists(path))
+                File.Replace(temporaryPath, path, path + ".bak", true);
+            else
+                File.Move(temporaryPath, path);
+        }
+
+        /// <summary>
+        /// 识别三维设备先于二维设备启动造成的固定 DMI 偏移，并将工程文件归一化到二维 DMI。
+        /// 只有全部校验通过才会写入文件，防止把比例误差或异常校桩误当作固定偏移。
+        /// </summary>
+        private void TryCorrect3DStartupDmiOffset()
+        {
+            string settingFile = Path.Combine(_PrjPath, "Setting.ini");
+            string caliFile = Path.Combine(_PrjPath, "MileStoneCaliInfo.txt");
+            if (!File.Exists(settingFile) || !File.Exists(caliFile))
+            {
+                return;
+            }
+
+            bool is3DRoad;
+            try
+            {
+                is3DRoad = new IniFiles(settingFile).ReadBool("WorkMode", "3dRoad", false);
+            }
+            catch
+            {
+                return;
+            }
+            if (!is3DRoad)
+            {
+                return;
+            }
+
+            List<DmiMile> calibration = new List<DmiMile>();
+            try
+            {
+                foreach (string line in File.ReadAllLines(caliFile))
+                {
+                    string[] values = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (values.Length < 2)
+                    {
+                        continue;
+                    }
+                    calibration.Add(new DmiMile(int.Parse(values[0]), int.Parse(values[1])));
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("检测到三维数据，但无法读取 MileStoneCaliInfo.txt，未修正 DMI。\r\n" + ex.Message);
+                return;
+            }
+
+            if (calibration.Count < 2)
+            {
+                return;
+            }
+
+            DmiMile first = calibration[0];
+            DmiMile last = calibration[calibration.Count - 1];
+            // 已经归一化的工程不再提示，也不重复生成备份或重复扣减。
+            if (first._Dmi == 0)
+            {
+                return;
+            }
+            bool valid = first._Dmi > 0
+                && first._Mile == _StartMile
+                && last._Mile == _EndMile
+                && last._Dmi - first._Dmi == _EndDmi;
+
+            for (int i = 1; valid && i < calibration.Count; i++)
+            {
+                bool dmiIncreasing = calibration[i]._Dmi > calibration[i - 1]._Dmi;
+                bool mileInDirection = _Direction > 0
+                    ? calibration[i]._Mile > calibration[i - 1]._Mile
+                    : calibration[i]._Mile < calibration[i - 1]._Mile;
+                valid = dmiIncreasing && mileInDirection;
+            }
+
+            if (!valid)
+            {
+                MessageBox.Show(string.Format(
+                    "检测到三维数据但不能确认固定 DMI 偏移，未修改工程文件。\r\n首 DMI：{0}，末 DMI：{1}，工程总里程：{2}，DMI 差值：{3}",
+                    first._Dmi, last._Dmi, _EndDmi, last._Dmi - first._Dmi));
+                return;
+            }
+
+            int offset = first._Dmi;
+            try
+            {
+                CreateReadOnlyBackup(caliFile, offset);
+                string markFile = Path.Combine(_PrjPath, "RoadStatuMarkInfo.txt");
+                if (File.Exists(markFile))
+                {
+                    CreateReadOnlyBackup(markFile, offset);
+                }
+                List<string> normalized = calibration
+                    .Select(item => string.Format("{0} {1}", item._Dmi - offset, item._Mile))
+                    .ToList();
+                File.WriteAllLines(caliFile, normalized, Encoding.UTF8);
+                _Pending3DStartupDmiOffset = offset;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("三维 DMI 偏移检测成功，但写入校桩修正失败，工程未完成修正。\r\n" + ex.Message);
+            }
+        }
+
+        private static void CreateReadOnlyBackup(string sourceFile, int offset)
+        {
+            string backupFile = sourceFile + string.Format(".dmi-offset-{0}.bak", offset);
+            if (File.Exists(backupFile))
+            {
+                return;
+            }
+
+            File.Copy(sourceFile, backupFile);
+            File.SetAttributes(backupFile, File.GetAttributes(backupFile) | FileAttributes.ReadOnly);
+        }
+
+        private void NormalizeAndRecalculateRoadStatusMarks(int dmiOffset)
+        {
+            string markFile = Path.Combine(_PrjPath, "RoadStatuMarkInfo.txt");
+            if (!File.Exists(markFile))
+            {
+                return;
+            }
+
+            string[] sourceLines = File.ReadAllLines(markFile, Encoding.UTF8);
+            List<string> rewrittenLines = new List<string>();
+            bool hasInvalidMark = false;
+            if (dmiOffset > 0)
+            {
+                CreateReadOnlyBackup(markFile, dmiOffset);
+            }
+
+            foreach (string sourceLine in sourceLines)
+            {
+                string line = sourceLine.Replace("K", "").Replace("k", "").Replace("+", "");
+                string[] values = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                int dmi;
+                if (values.Length < 4 || !int.TryParse(values[2], out dmi))
+                {
+                    rewrittenLines.Add(sourceLine);
+                    hasInvalidMark = sourceLine.Trim().Length > 0;
+                    continue;
+                }
+
+                dmi -= dmiOffset;
+                if (dmi < 0 || dmi > _EndDmi)
+                {
+                    rewrittenLines.Add(sourceLine);
+                    hasInvalidMark = true;
+                    continue;
+                }
+
+                int mile = Dmi2Mile(dmi);
+                string markText = string.Join(" ", values.Skip(3));
+                rewrittenLines.Add(string.Format("{0} {0} {1} {2}", mile, dmi, markText));
+            }
+
+            File.WriteAllLines(markFile, rewrittenLines, Encoding.UTF8);
+            if (hasInvalidMark)
+            {
+                MessageBox.Show("部分 RoadStatuMarkInfo.txt 打标格式或 DMI 范围异常，已保留原行；请人工核对这些记录。");
+            }
         }
 
         /// <summary>
@@ -575,34 +767,8 @@ namespace XRDataProcess
             sw.Close();
             fw.Close();
 
-            string tfname = _PrjPath + "\\RoadStatuMarkInfo.txt";
-            if (File.Exists(tfname))
-            {
-                List<string> strlist = new List<string>();
-                string[] strs = File.ReadAllLines(tfname, Encoding.UTF8);
-                for (int i = 0; i < strs.Length; ++i)
-                {
-                    strs[i] = strs[i].Replace("K", "");
-                    strs[i] = strs[i].Replace("k", "");
-                    strs[i] = strs[i].Replace("+", "");
-                    string[] sstrs = strs[i].Split(' ');
-                    if (sstrs.Length < 2)
-                        continue;
-                    int tdmi = (int)Convert.ToDouble(sstrs[2]);
-                    //int tmile = (int)Convert.ToDouble(sstrs[0]);
-                    int tmile = (int)Dmi2Mile(tdmi);
-                    for (int j = 0; j < ListDM.Count - 1; ++j)
-                    {
-                        if (ListDM[j]._Dmi <= tdmi && ListDM[j + 1]._Dmi > tdmi)
-                        {
-                            strs[i] = string.Format("{0} {0} {1} {2}", tmile, tdmi, sstrs[sstrs.Length - 1]);
-                            break;
-                        }
-                    }
-                    strlist.Add(strs[i]);
-                }
-                File.WriteAllLines(tfname, strlist, Encoding.UTF8);
-            }
+            NormalizeAndRecalculateRoadStatusMarks(_Pending3DStartupDmiOffset);
+            _Pending3DStartupDmiOffset = 0;
         }
 
         /// <summary>

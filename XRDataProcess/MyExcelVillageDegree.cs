@@ -3640,7 +3640,7 @@ namespace XRDataProcess
         {
             string srcxls = string.Format(@"{0}\报表模板\低等级农村公路\技术状况评定汇总表_2024.xlsx",
                 System.Windows.Forms.Application.StartupPath, disval);
-            string Destxls = string.Format(@"{0}\{1}_农村公路技术状况评定汇总表_{2}m.xlsx", path, prjdir.Name, disval);
+            string Destxls = string.Format(@"{0}\{1}_农村公路技术状况评定汇总表.xlsx", path, prjdir.Name);
             MSExcel.Workbook _Workbook = excelApp.Workbooks.Open(srcxls, Type.Missing,
                 true, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
                 Type.Missing, Type.Missing, Type.Missing, Type.Missing,
@@ -3727,7 +3727,7 @@ namespace XRDataProcess
         {
             string srcxls = string.Format(@"{0}\报表模板\低等级农村公路\路面破损评定汇总表_2024.xlsx",
                 System.Windows.Forms.Application.StartupPath, disval);
-            string Destxls = string.Format(@"{0}\{1}_路面破损评定汇总表_{2}m.xlsx", path, prjdir.Name, disval);
+            string Destxls = string.Format(@"{0}\{1}_路面破损评定汇总表.xlsx", path, prjdir.Name);
             MSExcel.Workbook _Workbook = excelApp.Workbooks.Open(srcxls, Type.Missing,
                 true, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
                 Type.Missing, Type.Missing, Type.Missing, Type.Missing,
@@ -3852,7 +3852,7 @@ namespace XRDataProcess
         {
             string srcxls = string.Format(@"{0}\报表模板\低等级农村公路\路面平整度评定汇总表_2024.xlsx",
                 System.Windows.Forms.Application.StartupPath, disval);
-            string Destxls = string.Format(@"{0}\{1}_路面平整度评定汇总表_{2}m.xlsx", path, prjdir.Name, disval);
+            string Destxls = string.Format(@"{0}\{1}_路面平整度评定汇总表.xlsx", path, prjdir.Name);
             MSExcel.Workbook _Workbook = excelApp.Workbooks.Open(srcxls, Type.Missing,
                 true, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
                 Type.Missing, Type.Missing, Type.Missing, Type.Missing,
@@ -4018,27 +4018,7 @@ namespace XRDataProcess
             return index;
         }
 
-        public static void OutputChongQingSumExcel(MSExcel.Application excelApp, string path, ProjectInfo prjinfo, DirectoryInfo prjdir, int disval)
-        {
-            string srcxls = string.Format(@"{0}\报表模板\低等级农村公路\四川定制\重庆公里指标导入模板.xlsx",
-                System.Windows.Forms.Application.StartupPath, disval);
-            string Destxls = string.Format(@"{0}\{1}_公里指标_{2}m.xlsx", path, prjdir.Name, disval);
-            MSExcel.Workbook _Workbook = excelApp.Workbooks.Open(srcxls, Type.Missing,
-                true, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                Type.Missing, Type.Missing, Type.Missing, Type.Missing);
-            MSExcel.Worksheet _Worksheet = null;
-            _Workbook.SaveAs(Destxls, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                MSExcel.XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
-            _Worksheet = _Workbook.Sheets["每公里指标 (病害)"] as MSExcel.Worksheet;
-            WriteAll2Xls_ChongQing(_Worksheet, prjinfo, prjdir, _RoadPart, _RoadDisList,
-               _LIRIMeanVal, _RIRIMeanVal, _LRutMeanVal, _RRutMeanVal, _SRutMeanVal, _LMTDMeanVal, _RMTDMeanVal, _CMTDMeanVal, _PBIVal, _DeltaHVal, disval, _GPSInfo); 
-            _Workbook.Save();
-            _Workbook.Close(Type.Missing, Type.Missing, Type.Missing);
-            int generation = System.GC.GetGeneration(excelApp);
-            System.GC.Collect(generation);//垃圾回收
-            System.GC.WaitForPendingFinalizers();
-        }
+       
 
         private static void WritePQI2Xls(MSExcel.Worksheet worksheet, ProjectInfo prjinfo, DirectoryInfo prjdir,
             List<MilePart> roadpart, Disease[] arrdis,
@@ -15604,6 +15584,29 @@ ProjectInfo prjinfo, DirectoryInfo prjdir, List<MilePart> RoadPart10M, int[][] P
         #endregion
 
         #region 四川
+
+        public static void OutputChongQingSumExcel(MSExcel.Application excelApp, string path, ProjectInfo prjinfo, DirectoryInfo prjdir, int disval)
+        {
+            string srcxls = string.Format(@"{0}\报表模板\低等级农村公路\四川定制\重庆公里指标导入模板.xlsx",
+                System.Windows.Forms.Application.StartupPath, disval);
+            string Destxls = string.Format(@"{0}\{1}_公里指标_{2}m.xlsx", path, prjdir.Name, disval);
+            MSExcel.Workbook _Workbook = excelApp.Workbooks.Open(srcxls, Type.Missing,
+                true, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+            MSExcel.Worksheet _Worksheet = null;
+            _Workbook.SaveAs(Destxls, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                MSExcel.XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+            _Worksheet = _Workbook.Sheets["每公里指标 (病害)"] as MSExcel.Worksheet;
+            WriteAll2Xls_ChongQing(_Worksheet, prjinfo, prjdir, _RoadPart, _RoadDisList,
+               _LIRIMeanVal, _RIRIMeanVal, _LRutMeanVal, _RRutMeanVal, _SRutMeanVal, _LMTDMeanVal, _RMTDMeanVal, _CMTDMeanVal, _PBIVal, _DeltaHVal, disval, _GPSInfo);
+            _Workbook.Save();
+            _Workbook.Close(Type.Missing, Type.Missing, Type.Missing);
+            int generation = System.GC.GetGeneration(excelApp);
+            System.GC.Collect(generation);//垃圾回收
+            System.GC.WaitForPendingFinalizers();
+        }
+
         private static void WriteAll2Xls_ChongQing(MSExcel.Worksheet worksheet, ProjectInfo prjinfo, DirectoryInfo prjdir, List<MilePart> roadpart,
  Disease[] arrdis, double[] LIRIVal, double[] RIRIVal, double[] LRutVal, double[] RRutVal, double[] SRutVal,
  double[] LMTDVal, double[] RMTDVal, double[] MMTDVal, int[][] PBVal, double[] deltahVal, int disval, ExcelGPS[] gpsInfo)

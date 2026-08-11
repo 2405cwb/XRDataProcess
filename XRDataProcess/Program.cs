@@ -33,13 +33,13 @@ namespace XRDataProcess
           </Target> 
                  
                  */
-                var form = new MainForm();
-                form.AutoTest();
+                //var form = new MainForm();
+                //form.AutoTest();
 
-                // 可选：加个提示，防止有人误触
-                Console.WriteLine("AutoTest 完成");
+                //// 可选：加个提示，防止有人误触
+                //Console.WriteLine("AutoTest 完成");
                 Environment.Exit(0); // 明确退出，防止卡死
-                return;
+                 return;
 
 
             }

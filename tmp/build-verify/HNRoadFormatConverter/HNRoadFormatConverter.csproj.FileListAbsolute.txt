@@ -1,0 +1,12 @@
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNRoadFormatConverter.csproj.AssemblyReference.cache
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNRoadFormatConverter.ChangeRoadPictureSizeForm.resources
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNRoadFormatConverter.Form1.resources
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNRoadFormatConverter.Form2.resources
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNRoadFormatConverter.LpFileCalculateIri.resources
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNRoadFormatConverter.MyContrls.MyWebBrowser.resources
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNRoadFormatConverter.Properties.Resources.resources
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNRoadFormatConverter.SelectSourceForm.resources
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNRoadFormatConverter.toolForms.ConventGetRoadNumberForm.resources
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNRoadFormatConverter.toolForms.gjModelSelectForm.resources
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNRoadFormatConverter.csproj.GenerateResource.cache
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNRoadFormatConverter.exe.licenses

@@ -725,36 +725,32 @@ namespace HNRoadFormatConverter.MyEntitys
 
             int GetImageIndexMile(int imageIndex, int imageInterval, out bool shouldStop)
             {
-                // 图像 fileindex 的桩号按工程起终点边界和采集间隔生成，不使用 2Mile.txt 的校桩值。
-                // 上行从 0 按间隔递增到工程总距离；下行从工程总距离按间隔递减到 0。
-                // 如果最后一步越过边界，则本张写边界值，后续图片不再导出，避免重复 0 或超出终点。
-                int totalDistance = Math.Abs(_StartMile - _EndMile);
-                if (totalDistance == 0 && _EndDmi > 0)
-                {
-                    totalDistance = _EndDmi;
-                }
+                // 图像 fileindex 的桩号按工程实际起点、终点和采集间隔生成，不使用 2Mile.txt 的校桩值。
+                // 上行从起点按间隔递增到终点；下行从起点按间隔递减到终点。
+                // 如果最后一步越过边界，则本张写边界值，后续图片不再导出。
+                int direction = _DirectionInt == 0 ? 1 : _DirectionInt;
+                int mile = _StartMile + direction * (imageIndex + 1) * imageInterval;
 
                 shouldStop = false;
-                if (_DirectionInt < 0)
-                {
-                    int mile = totalDistance - (imageIndex + 1) * imageInterval;
-                    if (mile <= 0)
-                    {
-                        shouldStop = true;
-                        return 0;
-                    }
-
-                    return mile;
-                }
-
-                int upMile = (imageIndex + 1) * imageInterval;
-                if (upMile >= totalDistance)
+                if (direction > 0 && mile >= _EndMile)
                 {
                     shouldStop = true;
-                    return totalDistance;
+                    return _EndMile;
                 }
 
-                return upMile;
+                if (direction < 0 && mile <= _EndMile)
+                {
+                    shouldStop = true;
+                    return Math.Max(0, _EndMile);
+                }
+
+                if (mile < 0)
+                {
+                    shouldStop = true;
+                    return 0;
+                }
+
+                return mile;
             }
 
             int GetNational2026BeforeCalibrationMile(int imageIndex, int imageInterval, out bool shouldStop)
@@ -915,34 +911,30 @@ namespace HNRoadFormatConverter.MyEntitys
             List<PicAndMile> picAndMiles = new List<PicAndMile>();
             int GetImageIndexMile(int imageIndex, int imageInterval, out bool shouldStop)
             {
-                // 湖南模板同样按工程起终点边界和采集间隔生成图片索引桩号。
-                int totalDistance = Math.Abs(_StartMile - _EndMile);
-                if (totalDistance == 0 && _EndDmi > 0)
-                {
-                    totalDistance = _EndDmi;
-                }
+                // 湖南模板同样按工程实际起点、终点和采集间隔生成图片索引桩号。
+                int direction = _DirectionInt == 0 ? 1 : _DirectionInt;
+                int mile = _StartMile + direction * (imageIndex + 1) * imageInterval;
 
                 shouldStop = false;
-                if (_DirectionInt < 0)
-                {
-                    int mile = totalDistance - (imageIndex + 1) * imageInterval;
-                    if (mile <= 0)
-                    {
-                        shouldStop = true;
-                        return 0;
-                    }
-
-                    return mile;
-                }
-
-                int upMile = (imageIndex + 1) * imageInterval;
-                if (upMile >= totalDistance)
+                if (direction > 0 && mile >= _EndMile)
                 {
                     shouldStop = true;
-                    return totalDistance;
+                    return _EndMile;
                 }
 
-                return upMile;
+                if (direction < 0 && mile <= _EndMile)
+                {
+                    shouldStop = true;
+                    return Math.Max(0, _EndMile);
+                }
+
+                if (mile < 0)
+                {
+                    shouldStop = true;
+                    return 0;
+                }
+
+                return mile;
             }
 
             if (road)

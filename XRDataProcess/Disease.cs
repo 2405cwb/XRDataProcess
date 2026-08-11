@@ -260,7 +260,7 @@ namespace XRDataProcess
                             }
                         case 5://板块长度X宽度
                             {
-                                if (_Setting.BrokenPlatetype == 0)
+                                if (_Setting. BrokenPlatetype == 0)
                                 {
                                     calcwidth = realwidth;
                                     calcheight = realheight;

@@ -91,6 +91,8 @@ namespace XRDataProcess
         private List<SingleProject> _Projects;
         private SingleProject _CurProject;
         private bool _isMainLayoutSafeToSave = true;
+        private bool _isUsingDefaultMainLayout;
+        private bool _defaultLayoutResizeQueued;
 
         public static string chktxt_fpath = null;
 
@@ -252,6 +254,7 @@ namespace XRDataProcess
             {
                 dockPanel_main_data.Width = this.Width - dockPanel_main_Plist.Width;
             }
+            QueueDefaultLayoutResize();
             if (_Setting.ParmStyle == StandardParmType.DegreeRoad2018 && _Setting.SelectDrawDis == 1)
             {
                 barButtonItem31.Visibility = BarItemVisibility.Always;
@@ -383,6 +386,19 @@ namespace XRDataProcess
             Directory.CreateDirectory(appFolder);               // 确保目录存在
             return Path.Combine(appFolder, _layoutFileName);
         }
+
+        private void barButtonItem60_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            try
+            {
+                string configDirectory = Path.GetDirectoryName(GetUserLayoutPath());
+                Process.Start("explorer.exe", configDirectory);
+            }
+            catch (Exception ex)
+            {
+                XtraMessageBox.Show("无法打开用户目录：" + ex.Message, "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
         
         
         /// <summary>
@@ -426,32 +442,40 @@ namespace XRDataProcess
                 if (TryRestoreLayout(userLayoutPath, "用户主界面布局"))
                 {
                     _isMainLayoutSafeToSave = true;
+                    _isUsingDefaultMainLayout = false;
                     return;
                 }
 
                 BackupBadLayoutFile(userLayoutPath);
                 if (File.Exists(defaultLayoutPath) && TryRestoreLayout(defaultLayoutPath, "默认主界面布局"))
                 {
-                    _isMainLayoutSafeToSave = true;
+                    // 默认布局属于软件安装目录；本次仅用于兜底显示，不能写回用户布局。
+                    _isMainLayoutSafeToSave = false;
+                    _isUsingDefaultMainLayout = true;
                     return;
                 }
 
                 _isMainLayoutSafeToSave = false;
+                _isUsingDefaultMainLayout = false;
                 return;
             }
 
-            if (File.Exists(defaultLayoutPath))
+            if (File.Exists(defaultLayoutPath) && TryRestoreLayout(defaultLayoutPath, "默认主界面布局"))
             {
-                TryRestoreLayout(defaultLayoutPath, "默认主界面布局");
+                _isMainLayoutSafeToSave = false;
+                _isUsingDefaultMainLayout = true;
+                return;
             }
 
-            _isMainLayoutSafeToSave = true;
+            _isMainLayoutSafeToSave = false;
+            _isUsingDefaultMainLayout = false;
         }
 
         private bool TryRestoreLayout(string layoutPath, string layoutName)
         {
             try
             {
+                ValidateLayoutFile(layoutPath);
                 dockManager_main.RestoreLayoutFromXml(layoutPath);
                 return true;
             }
@@ -530,8 +554,7 @@ namespace XRDataProcess
                 string folder = Path.GetDirectoryName(layoutPath);
                 string fileName = Path.GetFileNameWithoutExtension(layoutPath);
                 string extension = Path.GetExtension(layoutPath);
-                string backupPath = Path.Combine(folder, fileName + ".bad" + extension);
-                TryDeleteFile(backupPath);
+                string backupPath = Path.Combine(folder, string.Format("{0}.bad.{1:yyyyMMddHHmmssfff}{2}", fileName, DateTime.Now, extension));
                 File.Move(layoutPath, backupPath);
             }
             catch (Exception ex)
@@ -1566,23 +1589,52 @@ namespace XRDataProcess
 
         private void MainForm_SizeChanged(object sender, EventArgs e)
         {
-            //try
-            //{
-            //    dockManager_main.BeginUpdate(); // 暂停布局更新
-            //    if (File.Exists(_layoutpathdefault))
-            //    {
-            //        dockManager_main.RestoreLayoutFromXml(_layoutpathdefault);
-            //    }
-            //    _CurProject.RestoreDefaultLayout();
-            //}
-            //catch (Exception)
-            //{
-            //    // 处理异常
-            //}
-            //finally
-            //{
-            //    dockManager_main.EndUpdate(); // 恢复布局更新
-            //}
+            QueueDefaultLayoutResize();
+        }
+
+        private void QueueDefaultLayoutResize()
+        {
+            if (!_isUsingDefaultMainLayout || _defaultLayoutResizeQueued || !IsHandleCreated || IsDisposed)
+            {
+                return;
+            }
+
+            _defaultLayoutResizeQueued = true;
+            BeginInvoke((MethodInvoker)delegate
+            {
+                _defaultLayoutResizeQueued = false;
+                ApplyDefaultMainLayoutSize();
+            });
+        }
+
+        private void ApplyDefaultMainLayoutSize()
+        {
+            if (!_isUsingDefaultMainLayout || IsDisposed)
+            {
+                return;
+            }
+
+            dockManager_main.BeginUpdate();
+            try
+            {
+                dockPanel_main_Plist.Dock = DockingStyle.Left;
+                dockPanel_main_Plist.Visibility = DockVisibility.Visible;
+                dockPanel_main_Plist.Width = 200;
+
+                dockPanel_main_data.Dock = DockingStyle.Fill;
+                dockPanel_main_data.Visibility = DockVisibility.Visible;
+            }
+            finally
+            {
+                dockManager_main.EndUpdate();
+            }
+
+            dockManager_main.ForceInitialize();
+            if (_CurProject != null && !_CurProject.IsDisposed)
+            {
+                _CurProject.Dock = DockStyle.Fill;
+                _CurProject.Size = dockPanel_main_data.ClientSize;
+            }
         }
         private int _lastWidth = 0;
         private int _lastHeight = 0;
@@ -1607,6 +1659,7 @@ namespace XRDataProcess
                     }
                     ribbonControl1.Width = this.ClientSize.Width;
                     dockManager_main.ForceInitialize();
+                    QueueDefaultLayoutResize();
                 }
                 catch (Exception)
                 {
@@ -3144,26 +3197,23 @@ namespace XRDataProcess
 
         private void barButtonItem3_ItemClick(object sender, ItemClickEventArgs e)
         {
+            bool restored = false;
             string defaultPath = GetDefaultLayoutPath();
             if (File.Exists(defaultPath))
             {
-                try { dockManager_main.RestoreLayoutFromXml(defaultPath); }
-                catch { }
+                restored = TryRestoreLayout(defaultPath, "默认主界面布局");
+                // 恢复默认布局只读软件目录文件；关闭时不得覆盖用户保存的自定义布局。
+                _isMainLayoutSafeToSave = false;
+                _isUsingDefaultMainLayout = restored;
+                QueueDefaultLayoutResize();
             }
-
             foreach (SingleProject tpro in _Projects)
                 tpro.RestoreDefaultLayout();
 
-            // 终极修复：让主面板填满剩余空间
-            var mainPanel = dockManager_main.Panels[1]; // 工程数据（Item2）
-            var leftPanel = dockManager_main.Panels[0]; // 工程列表（Item1）
-
-            int totalWidth = this.ClientSize.Width;
-            int leftWidth = leftPanel.Width; // 200
-            mainPanel.Width = totalWidth - leftWidth; // 强制填满！
-
-            ribbonControl1.Width = totalWidth;
             dockManager_main.ForceInitialize();
+            MessageBox.Show(restored
+                ? "已从软件目录恢复默认布局。本次关闭不会改写用户目录中的自定义布局。"
+                : "恢复默认布局失败，请确认软件目录中的默认布局文件完整。", "布局恢复");
         }
 
 

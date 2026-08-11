@@ -1,0 +1,8 @@
+D:\job\工作COD\2025\公路\XRDataProcess\HNDtos\bin\Debug\HNDtos.dll
+D:\job\工作COD\2025\公路\XRDataProcess\HNDtos\bin\Debug\HNDtos.pdb
+D:\job\工作COD\2025\公路\XRDataProcess\HNDtos\bin\Debug\SqlSugar.dll
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNDtos.csproj.AssemblyReference.cache
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNDtos.csproj.CoreCompileInputs.cache
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNDtos.csproj.Up2Date
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNDtos.dll
+D:\job\工作COD\2025\公路\XRDataProcess\tmp\build-verify\HNRoadFormatConverter\HNDtos.pdb

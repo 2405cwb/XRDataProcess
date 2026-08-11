@@ -105,16 +105,15 @@ namespace HNRoadFormatConverter
             double[] array = new double[27];
             double[] array2 = new double[5];
             double[] array3 = new double[5];
-            int num = (int)(0.25f / DX + 0.5f) + 1;
-            //int num = (int)(0.25 / (double)DX + 0.5) + 1;
-            if (num < 2)
-            {
-                num = 2;
-            }
-
-
-            float num2 = (float)(num - 1) * DX;
-            num--;
+            // 原算法（保留用于复核）：
+            // int num = (int)(0.25f / DX + 0.5f) + 1;
+            // float num2 = (float)(num - 1) * DX;
+            // num--;
+            // 当 DX=0.1 时，原逻辑等价于 (Src[i]-Src[i-3])/0.3，
+            // 但后续仍使用 ST100/PR100 做 0.1m 状态更新，输入步长与矩阵不匹配。
+            // 现统一为相邻 DX 采样点坡度：(Src[i]-Src[i-1])/DX。
+            int num = 1;
+            float num2 = DX;
             if (Src.Length == 0 || Src.Length <= num)
             {
                 return Points;
@@ -133,15 +132,10 @@ namespace HNRoadFormatConverter
             double num4 = 0.0;
             int num5 = 1;
             int num6 = 0;
-            int num7 = Count;
             double num8 = 0.0;
 
            
            
-            // 初始化时间跟踪
-            int lastIndex = 0; // 上一个区间结束点的索引
-            
-
             while (num5 < Src.Length)
             {
                 do
@@ -176,7 +170,8 @@ namespace HNRoadFormatConverter
                 num4 += Math.Abs(array2[0] - array2[2]);
                 num6++;
                 num8 = num4 / (double)num6;
-                if (num5 == num7)
+                // 本采样点的状态已累计完成后，按状态步数输出完整 IRI 段。
+                if (num6 == Count)
                 {
 
                     // 添加IRI值
@@ -184,20 +179,14 @@ namespace HNRoadFormatConverter
  
                   
 
-                    // 实际距离 = 点数 * 0.1米
-                    double actualDistance = (num5 - lastIndex) * DX; 
-                  
-                    lastIndex = num5;
-
                     // 重置计数器
-                    num7 += Count;
                     num4 = 0.0;
                     num6 = 0;
                 }
             }
-            if (num5 < num7)
+            if (num6 > 0)
             {
-                Points.Add(num8);
+                Points.Add(num4 / (double)num6);
             }
             
             return Points;
@@ -273,16 +262,15 @@ namespace HNRoadFormatConverter
             double[] array = new double[27];
             double[] array2 = new double[5];
             double[] array3 = new double[5];
-            int num = (int)(0.25f / DX + 0.5f) + 1;
-            //int num = (int)(0.25 / (double)DX + 0.5) + 1;
-            if (num < 2)
-            {
-                num = 2;
-            }
-
-
-            float num2 = (float)(num - 1) * DX;
-            num--;
+            // 原算法（保留用于复核）：
+            // int num = (int)(0.25f / DX + 0.5f) + 1;
+            // float num2 = (float)(num - 1) * DX;
+            // num--;
+            // 当 DX=0.1 时，原逻辑等价于 (Src[i]-Src[i-3])/0.3，
+            // 但后续仍使用 ST100/PR100 做 0.1m 状态更新，输入步长与矩阵不匹配。
+            // 现统一为相邻 DX 采样点坡度：(Src[i]-Src[i-1])/DX。
+            int num = 1;
+            float num2 = DX;
             if (Src.Length == 0 || Src.Length <= num)
             {
                 return Points;
@@ -301,13 +289,8 @@ namespace HNRoadFormatConverter
             double num4 = 0.0;
             int num5 = 1;
             int num6 = 0;
-            int num7 = Count;
             double num8 = 0.0;
 
-
-
-            // 初始化时间跟踪
-            int lastIndex = 0; // 上一个区间结束点的索引
 
 
             while (num5 < Src.Length)
@@ -344,7 +327,8 @@ namespace HNRoadFormatConverter
                 num4 += Math.Abs(array2[0] - array2[2]);
                 num6++;
                 num8 = num4 / (double)num6;
-                if (num5 == num7)
+                // 本采样点的状态已累计完成后，按状态步数输出完整 IRI 段。
+                if (num6 == Count)
                 {
 
                     // 添加IRI值
@@ -352,20 +336,14 @@ namespace HNRoadFormatConverter
 
 
 
-                    // 实际距离 = 点数 * 0.1米
-                    double actualDistance = (num5 - lastIndex) * DX;
-
-                    lastIndex = num5;
-
                     // 重置计数器
-                    num7 += Count;
                     num4 = 0.0;
                     num6 = 0;
                 }
             }
-            if (num5 < num7)
+            if (num6 > 0)
             {
-                Points.Add(num8);
+                Points.Add(num4 / (double)num6);
             }
 
             return Points;

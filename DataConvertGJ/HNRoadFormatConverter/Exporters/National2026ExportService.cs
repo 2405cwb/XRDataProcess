@@ -32,7 +32,7 @@ namespace HNRoadFormatConverter.Exporters
             string roadCode = TrimDirectionSuffix(project.ConvertProName);
 
             // [年月日时分秒] 保留给客户填写；多个工程可共用同一个 EXPORTDATA。
-            string rootName = $"{cityName}+省检+{roadCode}-{directionName}-{roadNum}车道-[年月日时分秒]";
+            string rootName = $"{cityName}+省检+{roadCode}-{directionName}-{roadNum}车道-{project._DataDate+project._DataTime}";
             return Path.Combine(targetBasePath, rootName, "EXPORTDATA");
         }
 

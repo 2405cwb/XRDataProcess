@@ -30,7 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WinProj));
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.textBox_roadgrade = new System.Windows.Forms.TextBox();
+            this.comboBox_roadgrade = new System.Windows.Forms.ComboBox();
             this.label14 = new System.Windows.Forms.Label();
             this.textBox_mile = new System.Windows.Forms.TextBox();
             this.label13 = new System.Windows.Forms.Label();
@@ -78,7 +78,7 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 10F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 10F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 10F));
-            this.tableLayoutPanel1.Controls.Add(this.textBox_roadgrade, 1, 5);
+            this.tableLayoutPanel1.Controls.Add(this.comboBox_roadgrade, 1, 5);
             this.tableLayoutPanel1.Controls.Add(this.label14, 4, 7);
             this.tableLayoutPanel1.Controls.Add(this.textBox_mile, 5, 7);
             this.tableLayoutPanel1.Controls.Add(this.label13, 0, 7);
@@ -130,15 +130,17 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(296, 210);
             this.tableLayoutPanel1.TabIndex = 106;
             // 
-            // textBox_roadgrade
+            // comboBox_roadgrade
             // 
-            this.tableLayoutPanel1.SetColumnSpan(this.textBox_roadgrade, 3);
-            this.textBox_roadgrade.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBox_roadgrade.Location = new System.Drawing.Point(59, 110);
-            this.textBox_roadgrade.Margin = new System.Windows.Forms.Padding(0);
-            this.textBox_roadgrade.Name = "textBox_roadgrade";
-            this.textBox_roadgrade.Size = new System.Drawing.Size(87, 21);
-            this.textBox_roadgrade.TabIndex = 111;
+            this.tableLayoutPanel1.SetColumnSpan(this.comboBox_roadgrade, 3);
+            this.comboBox_roadgrade.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.comboBox_roadgrade.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox_roadgrade.FormattingEnabled = true;
+            this.comboBox_roadgrade.Location = new System.Drawing.Point(59, 110);
+            this.comboBox_roadgrade.Margin = new System.Windows.Forms.Padding(0);
+            this.comboBox_roadgrade.Name = "comboBox_roadgrade";
+            this.comboBox_roadgrade.Size = new System.Drawing.Size(87, 20);
+            this.comboBox_roadgrade.TabIndex = 111;
             // 
             // label14
             // 
@@ -598,7 +600,7 @@
         private System.Windows.Forms.DateTimePicker dateTimePicker_date;
         private System.Windows.Forms.DateTimePicker dateTimePicker_time;
         private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.TextBox textBox_roadgrade;
+        private System.Windows.Forms.ComboBox comboBox_roadgrade;
         private System.Windows.Forms.Button button_No;
         private System.Windows.Forms.Button button_Yes;
 

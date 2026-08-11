@@ -342,6 +342,7 @@ namespace XRDataProcess
 
                 label_DmiLen.Enabled = true;
                 textBox_DmiLen.Enabled = true;
+                radioButton30.Enabled = false;
             }
             else
             {
@@ -352,6 +353,7 @@ namespace XRDataProcess
 
                 label_DmiLen.Enabled = false;
                 textBox_DmiLen.Enabled = false;
+                radioButton30.Enabled = true;
             }
         }
 
@@ -424,11 +426,18 @@ namespace XRDataProcess
                 ttagval = Convert.ToInt16(ctl.Tag);
                 if (ctl is RadioButton)
                 {
-                    if (ttagval != 0 && ttagval != 4 && ttagval != 6 && ttagval != 7 && ttagval!=13&&ttagval!=12)
+                    if (ttagval == 14)
+                    {
+                        RadioButton tctl = (RadioButton)ctl;
+                        tctl.Visible = true;
+                        tctl.Text = "报表定制模板";
+                    }
+                    else  if (ttagval != 0 && ttagval != 4 && ttagval != 6 && ttagval != 7 && ttagval!=13&&ttagval!=12)
                     {
                         RadioButton tctl = (RadioButton)ctl;
                         tctl.Visible = false;
                     }
+                     
                     else
                     {
                         if (ttagval == 0 && _Setting.ExcelType == 0)

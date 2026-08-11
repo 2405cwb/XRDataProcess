@@ -35,6 +35,12 @@ namespace XRDataProcess
         /// </summary>
         private bool _DisType = false;
 
+        private sealed class DiseaseRowSource
+        {
+            public string FileName;
+            public string RawLine;
+        }
+
         public WinRoadDisList(ProjectInfo proinfo, string ppath)
         {
             InitializeComponent();
@@ -162,11 +168,8 @@ namespace XRDataProcess
                                 var1New[2] = tdis.RoadDisType;
                                 var1New[5] = tdis.Area.ToString("0.00");
 
-                                dataGridView_Dislist.Invoke(new Action(() =>
-                                {
-                                    dataGridView_Dislist.Rows.Add(var1New);
-                                })
-                       );
+                                int rowIndex = dataGridView_Dislist.Rows.Add(var1New);
+                                dataGridView_Dislist.Rows[rowIndex].Tag = new DiseaseRowSource { FileName = disfile, RawLine = dis };
 
 
                             }
@@ -238,11 +241,8 @@ namespace XRDataProcess
                                 var1New[4] = tdis.calcwidth.ToString("0.000");
                                 var1New[5] = tdis.Area.ToString("0.000000");
 
-                                dataGridView_Dislist.Invoke(new Action(() =>
-                                {
-                                    dataGridView_Dislist.Rows.Add(var1New);
-                                })
-                     );
+                                int rowIndex = dataGridView_Dislist.Rows.Add(var1New);
+                                dataGridView_Dislist.Rows[rowIndex].Tag = new DiseaseRowSource { FileName = disfile, RawLine = dis };
                              
                             }
                         }
@@ -347,6 +347,33 @@ namespace XRDataProcess
         private void button1_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void button_delete_Click(object sender, EventArgs e)
+        {
+            DataGridViewRow[] selected = dataGridView_Dislist.SelectedRows.Cast<DataGridViewRow>().ToArray();
+            if (selected.Length == 0) return;
+            if (MessageBox.Show("确定删除所选的 " + selected.Length + " 条病害吗？此操作会同步删除对应图像病害记录。", "删除病害", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
+
+            foreach (IGrouping<string, DataGridViewRow> group in selected.GroupBy(row => ((DiseaseRowSource)row.Tag).FileName))
+            {
+                List<string> lines = File.ReadAllLines(group.Key).ToList();
+                foreach (DataGridViewRow row in group)
+                {
+                    DiseaseRowSource source = (DiseaseRowSource)row.Tag;
+                    int index = lines.FindIndex(line => string.Equals(line, source.RawLine, StringComparison.Ordinal));
+                    if (index >= 0) lines.RemoveAt(index);
+                }
+                WriteLinesAtomically(group.Key, lines);
+            }
+            LoadAllDis();
+        }
+
+        private static void WriteLinesAtomically(string path, IEnumerable<string> lines)
+        {
+            string temporaryPath = path + ".tmp";
+            File.WriteAllLines(temporaryPath, lines, new UTF8Encoding(false));
+            File.Replace(temporaryPath, path, path + ".bak", true);
         }
     }
 }

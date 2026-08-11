@@ -19,9 +19,15 @@ namespace XRDataProcess
         private ProjectInfo _ProjectInfo;
         private string _ProjPath;
         private List<MarkInfo> _MarkInfo = null;
+        private Dictionary<MarkInfo, string> _MarkSources = new Dictionary<MarkInfo, string>();
         private bool _IsMarkClear;
 
         private List<DmiMile> _DmiMileList = null;
+
+        private sealed class MarkRowSource
+        {
+            public string RawLine;
+        }
 
         public 采集打标列表(ProjectInfo proinfo, string ppath)
         {
@@ -42,6 +48,7 @@ namespace XRDataProcess
         {
             _IsMarkClear = isclear;
             _MarkInfo.Clear();
+            _MarkSources.Clear();
             dataGridView_Mark.Rows.Clear();
 
             bool flagcalidmi = File.Exists(_ProjPath + "\\MileStoneCaliInfo.txt");
@@ -64,8 +71,9 @@ namespace XRDataProcess
                             tmark._Mile = _ProjectInfo.Dmi2Mile(dmi);
                             //tmark._Mile = Convert.ToInt32(s[0]);
                         }
-                    }
-                    _MarkInfo.Add(tmark);
+                }
+                _MarkInfo.Add(tmark);
+                _MarkSources[tmark] = info;
                 }
             }
             if (_ProjectInfo._Direction > 0)//升序
@@ -82,7 +90,12 @@ namespace XRDataProcess
                 var[0] = mark._Mile;
                 var[1] = mark._Type;
                 var[2] = mark._Info;
-                dataGridView_Mark.Rows.Add(var);
+                int rowIndex = dataGridView_Mark.Rows.Add(var);
+                // 原始行是删除时的唯一凭据，避免按排序后的行号误删其它打标。
+                dataGridView_Mark.Rows[rowIndex].Tag = new MarkRowSource
+                {
+                    RawLine = _MarkSources[mark]
+                };
             }
         }
 
@@ -135,47 +148,6 @@ namespace XRDataProcess
                 EventJumpMark(markmile, EventArgs.Empty);
             }
             catch { }
-        }
-
-        private void dataGridView_Mark_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
-        {
-            if (!_IsMarkClear)
-            {
-                int dmile = Convert.ToInt32(_MarkInfo[e.RowIndex]._Mile);
-                string filename = _ProjPath + "\\RoadStatuMarkInfo.txt";
-                if (File.Exists(filename))
-                {
-                    string[] infos = File.ReadAllLines(filename);
-                    List<string> infolist = new List<string>(infos);
-                    int i = 0;
-                    foreach (string info in infolist)
-                    {
-                        string[] str = info.Split(' ');
-                        infos = str[str.Length - 1].Split(':');
-                        if (int.Parse(str[0]) == dmile && infos[0] == _MarkInfo[e.RowIndex]._Type && infos[1] == _MarkInfo[e.RowIndex]._Info)
-                        {
-                            infolist.RemoveAt(i);
-                            _MarkInfo.RemoveAt(e.RowIndex);
-                            break;
-                        }
-                        ++i;
-                    }
-                    if (infolist.Count == 0)
-                    {
-                        File.Delete(filename);
-                    }
-                    else
-                    {
-                        infos = infolist.ToArray();
-                        File.WriteAllLines(filename, infos, Encoding.UTF8);
-                        EventUpdateRoadPart(null, null);
-                    }
-                }
-            }
-            else
-            {
-                _IsMarkClear = false;
-            }
         }
 
         private void dataGridView_Mark_Sorted(object sender, EventArgs e)
@@ -388,11 +360,6 @@ namespace XRDataProcess
             }
         }
 
-        private void dataGridView1_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
-        {
-            _DmiMileList.RemoveAt(e.RowIndex);
-        }
-
         private void dataGridView1_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
         {
             try
@@ -488,6 +455,48 @@ namespace XRDataProcess
         private void dataGridView_Mark_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
+        }
+
+        private void button_deleteMark_Click(object sender, EventArgs e)
+        {
+            DataGridViewRow[] selected = dataGridView_Mark.SelectedRows.Cast<DataGridViewRow>().ToArray();
+            if (selected.Length == 0) return;
+            if (MessageBox.Show("确定删除所选的 " + selected.Length + " 条打标吗？", "删除打标", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
+
+            string fileName = Path.Combine(_ProjPath, "RoadStatuMarkInfo.txt");
+            List<string> lines = File.Exists(fileName) ? File.ReadAllLines(fileName, Encoding.UTF8).ToList() : new List<string>();
+            foreach (DataGridViewRow row in selected)
+            {
+                MarkRowSource source = row.Tag as MarkRowSource;
+                if (source == null) continue;
+                int index = lines.FindIndex(line => string.Equals(line.Trim(), source.RawLine.Trim(), StringComparison.Ordinal));
+                if (index >= 0) lines.RemoveAt(index);
+            }
+            WriteLinesAtomically(fileName, lines);
+            LoadAllMark(true);
+            if (EventUpdateRoadPart != null) EventUpdateRoadPart(null, EventArgs.Empty);
+        }
+
+        private void button_deleteCali_Click(object sender, EventArgs e)
+        {
+            DataGridViewRow[] selected = dataGridView1.SelectedRows.Cast<DataGridViewRow>().ToArray();
+            if (selected.Length == 0) return;
+            if (MessageBox.Show("确定删除所选的 " + selected.Length + " 条校桩吗？保存并重载工程后生效。", "删除校桩", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
+            foreach (DataGridViewRow row in selected)
+            {
+                int mile = Convert.ToInt32(row.Cells[0].Value);
+                int dmi = Convert.ToInt32(row.Cells[1].Value);
+                _DmiMileList.RemoveAll(item => item._Mile == mile && item._Dmi == dmi);
+                dataGridView1.Rows.Remove(row);
+            }
+        }
+
+        private static void WriteLinesAtomically(string path, IEnumerable<string> lines)
+        {
+            string temporaryPath = path + ".tmp";
+            File.WriteAllLines(temporaryPath, lines, new UTF8Encoding(false));
+            if (File.Exists(path)) File.Replace(temporaryPath, path, path + ".bak", true);
+            else File.Move(temporaryPath, path);
         }
     }
 }
